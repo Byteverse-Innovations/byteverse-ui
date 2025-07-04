@@ -1,0 +1,217 @@
+/* Import Bootstrap Icons */
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css");
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+/* Import Theme */
+@import './styles/theme.scss';
+
+/* =============================================================================
+   CUSTOM STYLES
+   ============================================================================= */
+
+/* Custom styles */
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-family-primary);
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+}
+
+main {
+  flex: 1;
+}
+
+/* Navigation styles */
+.navbar-nav .nav-link {
+  font-weight: var(--font-weight-medium);
+  transition: color var(--transition-duration-normal) var(--transition-timing-ease);
+  color: var(--text-secondary);
+}
+
+.navbar-nav .nav-link:hover {
+  color: var(--primary) !important;
+}
+
+.navbar-nav .nav-link.active {
+  color: var(--primary) !important;
+  font-weight: var(--font-weight-semibold);
+}
+
+.navbar-brand {
+  font-family: var(--font-family-secondary);
+  font-weight: var(--font-weight-bold);
+  color: var(--primary) !important;
+}
+
+/* Card hover effects */
+.card {
+  transition: transform var(--transition-duration-normal) var(--transition-timing-ease),
+    box-shadow var(--transition-duration-normal) var(--transition-timing-ease);
+  border: var(--border-width) solid var(--border-color-light);
+  border-radius: var(--border-radius-lg);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* Button hover effects */
+.btn {
+  transition: all var(--transition-duration-normal) var(--transition-timing-ease);
+  font-weight: var(--font-weight-medium);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.btn-outline-primary {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+/* Progress bar animation */
+.progress-bar {
+  transition: width var(--transition-duration-slow) var(--transition-timing-ease-in-out);
+}
+
+/* Form focus effects */
+.form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.2rem rgba(9, 86, 190, 0.25);
+}
+
+.form-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.2rem rgba(9, 86, 190, 0.25);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--neutral-200);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: var(--border-radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .display-4 {
+    font-size: var(--font-size-4xl);
+  }
+
+  .lead {
+    font-size: var(--font-size-lg);
+  }
+}
+
+/* Animation classes */
+.fade-in {
+  animation: fadeIn var(--transition-duration-normal) var(--transition-timing-ease);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Sticky footer effect */
+.sticky-top {
+  z-index: var(--z-index-sticky);
+}
+
+/* Enhanced focus states for accessibility */
+.btn:focus,
+.form-control:focus,
+.form-select:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Typography utilities */
+.text-primary {
+  color: var(--primary) !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+.bg-primary {
+  background-color: var(--primary) !important;
+}
+
+.bg-secondary {
+  background-color: var(--bg-secondary) !important;
+}
+
+.bg-dark {
+  background-color: var(--bg-dark) !important;
+}
+
+.bg-san-juan {
+  background-color: var(--bg-san-juan) !important;
+}
+
+.bg-deep-cove {
+  background-color: var(--bg-deep-cove) !important;
+}
+
+/* Custom utility classes */
+.shadow-byteverse {
+  box-shadow: var(--shadow-lg);
+}
+
+.border-byteverse {
+  border-color: var(--border-color) !important;
+}
+
+.rounded-byteverse {
+  border-radius: var(--border-radius-lg) !important;
+}
