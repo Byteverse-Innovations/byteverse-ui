@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
-import { Navbar, Nav, Container, Button } from 'react-bootstrap'
+import { useState } from 'react'
+import { Navbar, Nav, Container } from 'react-bootstrap'
 import { Link, useLocation } from 'react-router-dom'
 import logo from '../../../assets/bv-logo.svg'
 import './navigation.scss'
 
-const Navigation: React.FC = () => {
+const Navigation = () => {
   const [expanded, setExpanded] = useState(false)
   const location = useLocation()
 

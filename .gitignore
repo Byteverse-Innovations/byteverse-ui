@@ -29,4 +29,5 @@ yarn.lock
 
 # Build files
 dist
+cdk.out
 
