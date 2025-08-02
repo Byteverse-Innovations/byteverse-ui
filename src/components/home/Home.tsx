@@ -11,7 +11,7 @@ const Home: React.FC = () => {
         <Col className="text-center d-flex align-items-start flex-column justify-content-center bg-deep-cove" lg={6}>
           <h1 className="display-4 fw-bold mb-4 text-white">Engineering the Future for Small Business IT</h1>
           <p className="lead mb-4 text-white">
-            Innovative solutions for the digital age. We transform ideas into powerful, scalable applications.
+            Innovative solutions for the digital age. We transform ideas into powerful, scalable applications
           </p>
           <Button variant="primary" size="lg">
             View Our Work
