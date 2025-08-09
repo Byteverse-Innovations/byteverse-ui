@@ -14,9 +14,9 @@ const Navigation = () => {
 
   return (
     <Navbar
-      bg="dark"
+      bg="deep-cove"
       expand="lg"
-      className="shadow-sm sticky-top"
+      className="sticky-top"
       expanded={expanded}
       onToggle={() => setExpanded(!expanded)}
     >
