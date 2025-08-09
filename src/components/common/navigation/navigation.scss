@@ -6,3 +6,7 @@
     object-position: left;
   }
 }
+
+[aria-controls=basic-navbar-nav] {
+  background-color: gray !important;
+}
