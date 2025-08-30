@@ -54,7 +54,7 @@ const Services: React.FC = () => {
   ]
 
   return (
-    <Container fluid className="py-5">
+    <Container fluid className="py-5 bg-deep-cove text-white">
       {/* Header Section */}
       <Row className="mb-5">
         <Col lg={12} className="text-center">
@@ -77,7 +77,7 @@ const Services: React.FC = () => {
                   <Badge bg="light" text="dark">{service.badge}</Badge>
                 </div>
               </Card.Header>
-              <Card.Body className="d-flex flex-column">
+              <Card.Body className="d-flex flex-column bg-deep-cove text-white">
                 <Card.Text className="mb-3">{service.description}</Card.Text>
                 <ListGroup variant="flush" className="mb-3">
                   {service.features.map((feature, index) => (
@@ -100,9 +100,9 @@ const Services: React.FC = () => {
       </Row>
 
       {/* Call to Action */}
-      <Row className="mt-5">
-        <Col lg={8} className="mx-auto text-center">
-          <div className="bg-light p-5 rounded">
+      <Row className="mt-5 bg-deep-cove">
+        <Col lg={8} className="mx-auto text-center bg-deep-cove">
+          <div className="bg-deep-cove p-5 rounded text-white">
             <h2 className="mb-4">Ready to Get Started?</h2>
             <p className="lead mb-4">
               Let's discuss your project requirements and find the perfect solution for your business.

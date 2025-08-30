@@ -95,7 +95,7 @@ const Home: React.FC = () => {
             Learn More About Us
           </Button>
         </Col>
-        <Col lg={3} className="d-none d-lg-block">
+        <Col lg={3} className="d-none d-lg-block text-white">
          <h2 className="mb-5">Why Byteverse</h2>
          <ul className="lead">
             <li>Expertise in modern technologies</li>
