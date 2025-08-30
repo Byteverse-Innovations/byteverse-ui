@@ -1,0 +1,20 @@
+type Query {
+  getIndividualItem(id: ID!): Service
+  listAllServices: [Service!]!
+}
+
+type Service {
+  category: String
+  createdAt: String
+  description: String
+  estimatedDuration: String
+  id: ID!
+  isActive: Boolean
+  name: String!
+  price: Float
+  pricingModel: String
+  servicePillar: String
+  showOnMainSite: Boolean
+  targetClient: [String!]
+  updatedAt: String
+}

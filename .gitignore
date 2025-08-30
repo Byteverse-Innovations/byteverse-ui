@@ -31,3 +31,8 @@ yarn.lock
 dist
 cdk.out
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+

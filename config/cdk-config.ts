@@ -18,5 +18,7 @@ export const environments: Record<string, EnvironmentConfig> = {
   },
 }
 
+export const apiKey = 'da2-zcwrxag3evhdjgpih6ltmnilmm'
+
 // Default config for backward compatibility
 export const cdkConfig = environments.prod 
