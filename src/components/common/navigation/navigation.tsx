@@ -20,7 +20,7 @@ const Navigation = () => {
       expanded={expanded}
       onToggle={() => setExpanded(!expanded)}
     >
-      <Container>
+      <Container fluid>
         <Navbar.Brand as={Link} to="/" className="fw-bold text-primary">
           <img src={logo} alt="Byteverse" />
         </Navbar.Brand>
@@ -32,7 +32,7 @@ const Navigation = () => {
             <Nav.Link
               as={Link}
               to="/"
-              className={`mx-2 ${isActive('/') ? 'active fw-bold' : ''}`}
+              className={`mx-2 ${isActive('/') ? 'active fw-bold' : 'text-white'}`}
               onClick={() => setExpanded(false)}
             >
               Home
@@ -40,7 +40,7 @@ const Navigation = () => {
             <Nav.Link
               as={Link}
               to="/services"
-              className={`mx-2 ${isActive('/services') ? 'active fw-bold' : ''}`}
+              className={`mx-2 ${isActive('/services') ? 'active fw-bold' : 'text-white'}`}
               onClick={() => setExpanded(false)}
             >
               Services
@@ -48,7 +48,7 @@ const Navigation = () => {
             <Nav.Link
               as={Link}
               to="/about"
-              className={`mx-2 ${isActive('/about') ? 'active fw-bold' : ''}`}
+              className={`mx-2 ${isActive('/about') ? 'active fw-bold' : 'text-white'}`}
               onClick={() => setExpanded(false)}
             >
               About
@@ -56,7 +56,7 @@ const Navigation = () => {
             <Nav.Link
               as={Link}
               to="/contact"
-              className={`mx-2 ${isActive('/contact') ? 'active fw-bold' : ''}`}
+              className={`mx-2 ${isActive('/contact') ? 'active fw-bold' : 'text-white'}`}
               onClick={() => setExpanded(false)}
             >
               Contact

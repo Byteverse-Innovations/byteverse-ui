@@ -1,9 +1,29 @@
 .img-hero {
-  max-width: 400px;
+  max-width: 500px;
   width: 100%;
   height: auto;
 }
 
 .card {
   box-shadow: 0 4px 25px rgba(0, 123, 255, 0.2);
+  border-color: transparent !important;
+}
+
+.why-byteverse {
+  h2 {
+    color: #0F9EDE;
+  }
+
+  ul {
+    padding-left: 0 !important;
+
+    li {
+      list-style-type: none;
+      padding-bottom: 10px;
+
+      &>i {
+        color: #0F9EDE;
+      }
+    }
+  }
 }

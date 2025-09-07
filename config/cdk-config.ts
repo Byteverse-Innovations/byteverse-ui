@@ -10,15 +10,13 @@ export interface EnvironmentConfig {
 export const environments: Record<string, EnvironmentConfig> = {
   prod: {
     env: {
-      account: '696623242599', // Replace with your AWS account ID
+      account: '560873111080', // Replace with your AWS account ID
       region: 'us-east-1',
     },
     domainName: 'byteverseinnov.com',
     subdomain: '',
   },
 }
-
-export const apiKey = 'da2-zcwrxag3evhdjgpih6ltmnilmm'
 
 // Default config for backward compatibility
 export const cdkConfig = environments.prod 

@@ -18,7 +18,7 @@
   flex-direction: column;
   font-family: var(--font-family-primary);
   color: var(--text-primary);
-  background-color: var(--bg-primary);
+  background: linear-gradient(to bottom, #01113f, #0956be);
 }
 
 main {
@@ -111,22 +111,20 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar */
+/* Hide scrollbar but keep scrolling ability */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 0px;
+  background: transparent;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--neutral-200);
+/* For Firefox */
+* {
+  scrollbar-width: none;
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border-radius: var(--border-radius-sm);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-dark);
+/* For older WebKit browsers */
+::-webkit-scrollbar {
+  display: none;
 }
 
 /* Responsive adjustments */
@@ -214,4 +212,8 @@ html {
 
 .rounded-byteverse {
   border-radius: var(--border-radius-lg) !important;
+}
+
+.gray-2 {
+  color: #C2C0CD;
 }
