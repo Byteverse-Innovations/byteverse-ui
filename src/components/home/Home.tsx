@@ -24,7 +24,8 @@ const Home: React.FC = () => {
             </div>
           </div>
           <div>
-            <ByteverseCircuitGlobe logoUrl={heroImage} />
+            {/* <ByteverseCircuitGlobe logoUrl={heroImage} /> */}
+            <img src={heroImage} />
           </div>
         </Col>
       </Row>
