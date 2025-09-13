@@ -20,8 +20,7 @@ export const getApiKey = () => {
 const graphqlClient = new GraphQLClient('https://api.byteverseinnov.com/graphql', {
   headers: {
     'Content-Type': 'application/json',
-    'x-api-key': 'da2-zcwrxag3evhdjgpih6ltmnilmm',
-    // ...(getApiKey() && { 'x-api-key': getApiKey() }),
+    ...(getApiKey() && { 'x-api-key': getApiKey() }),
   },
 })
 
