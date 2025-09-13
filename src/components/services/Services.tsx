@@ -1,7 +1,7 @@
 import React from 'react'
 import { Container, Row, Col, Card, Badge, ListGroup, Spinner, Alert } from 'react-bootstrap'
 import { useListAllServicesQuery } from '../../api/operations/ops'
-import graphqlClient from '../../api/clients/graphql-client'
+import graphqlClient, { getApiKey } from '../../api/clients/graphql-client'
 
 const Services: React.FC = () => {
   const { data, isLoading, isError, error } = useListAllServicesQuery(graphqlClient)
@@ -50,7 +50,7 @@ const Services: React.FC = () => {
             .filter(service => service.showOnMainSite !== false)
             .map((service) => (
               <Col lg={4} md={6} className="mb-4" key={service.id}>
-                <Card className="h-100 shadow-sm border-0 bg-white">
+                <Card className="h-100 border-0 bg-white">
                   <Card.Header className="bg-primary text-white">
                     <div className="d-flex justify-content-between align-items-center">
                       <Card.Title className="mb-0">{service.name}</Card.Title>
@@ -59,31 +59,31 @@ const Services: React.FC = () => {
                       )}
                     </div>
                   </Card.Header>
-                  <Card.Body className="d-flex flex-column bg-white text-dark">
+                  <Card.Body className="d-flex flex-column bg-deep-cove text-white">
                     <Card.Text className="mb-3">{service.description}</Card.Text>
 
                     {/* Service Details */}
                     <ListGroup variant="flush" className="mb-3">
                       {service.servicePillar && (
-                        <ListGroup.Item className="border-0 px-0">
+                        <ListGroup.Item className="border-0 px-0 bg-deep-cove text-white">
                           <i className="bi bi-layers-fill text-primary me-2"></i>
                           <strong>Pillar:</strong> {service.servicePillar}
                         </ListGroup.Item>
                       )}
                       {service.estimatedDuration && (
-                        <ListGroup.Item className="border-0 px-0">
+                        <ListGroup.Item className="border-0 px-0 bg-deep-cove text-white">
                           <i className="bi bi-clock-fill text-warning me-2"></i>
                           <strong>Duration:</strong> {service.estimatedDuration}
                         </ListGroup.Item>
                       )}
                       {service.pricingModel && (
-                        <ListGroup.Item className="border-0 px-0">
+                        <ListGroup.Item className="border-0 px-0 bg-deep-cove text-white">
                           <i className="bi bi-currency-dollar text-success me-2"></i>
                           <strong>Pricing:</strong> {service.pricingModel}
                         </ListGroup.Item>
                       )}
                       {service.targetClient && service.targetClient.length > 0 && (
-                        <ListGroup.Item className="border-0 px-0">
+                        <ListGroup.Item className="border-0 px-0 bg-deep-cove text-white">
                           <i className="bi bi-people-fill text-info me-2"></i>
                           <strong>Target:</strong> {service.targetClient.join(', ')}
                         </ListGroup.Item>
@@ -92,9 +92,9 @@ const Services: React.FC = () => {
 
                     <div className="mt-auto">
                       {service.price && (
-                        <h5 className="text-primary mb-3">${service.price}</h5>
+                        <h5 className="text-white mb-3">${service.price}</h5>
                       )}
-                      <button className="btn btn-outline-primary w-100">
+                      <button className="btn btn-outline-primary w-100 bg-primary text-white">
                         Get Started
                       </button>
                     </div>
@@ -125,12 +125,15 @@ const Services: React.FC = () => {
             <p className="lead mb-4">
               Let's discuss your project requirements and find the perfect solution for your business.
             </p>
-            <button className="btn btn-primary btn-lg me-3">
-              Schedule a Consultation
-            </button>
-            <button className="btn btn-outline-secondary btn-lg">
-              Download Brochure
-            </button>
+            <div className="d-flex flex-column gap-2 align-items-center">
+              <button className="btn btn-primary btn-lg">
+                Schedule a Consultation
+              </button>
+              <button className="btn btn-outline-secondary btn-lg disabled">
+                Download Brochure
+              </button>
+            </div>
+
           </div>
         </Col>
       </Row>

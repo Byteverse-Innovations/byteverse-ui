@@ -1,0 +1,180 @@
+/* =============================================================================
+   BREAKPOINTS SYSTEM
+   ============================================================================= */
+
+/* Breakpoint Variables */
+$breakpoint-xs: 0;
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+$breakpoint-xxl: 1400px;
+$breakpoint-xxxl: 1600px;
+$breakpoint-4k: 1920px;
+
+/* Container Max-Widths for Different Breakpoints */
+$container-xs: 100%;
+$container-sm: 540px;
+$container-md: 720px;
+$container-lg: 960px;
+$container-xl: 1140px;
+$container-xxl: 1320px;
+$container-xxxl: 1500px;
+$container-4k: 1800px;
+
+/* Container Padding for Different Breakpoints */
+$container-padding-xs: 15px;
+$container-padding-sm: 20px;
+$container-padding-md: 30px;
+$container-padding-lg: 40px;
+$container-padding-xl: 50px;
+$container-padding-xxl: 60px;
+$container-padding-xxxl: 80px;
+$container-padding-4k: 100px;
+
+/* Mixins for Media Queries */
+@mixin media-xs {
+  @media (min-width: #{$breakpoint-xs}) {
+    @content;
+  }
+}
+
+@mixin media-sm {
+  @media (min-width: #{$breakpoint-sm}) {
+    @content;
+  }
+}
+
+@mixin media-md {
+  @media (min-width: #{$breakpoint-md}) {
+    @content;
+  }
+}
+
+@mixin media-lg {
+  @media (min-width: #{$breakpoint-lg}) {
+    @content;
+  }
+}
+
+@mixin media-xl {
+  @media (min-width: #{$breakpoint-xl}) {
+    @content;
+  }
+}
+
+@mixin media-xxl {
+  @media (min-width: #{$breakpoint-xxl}) {
+    @content;
+  }
+}
+
+@mixin media-xxxl {
+  @media (min-width: #{$breakpoint-xxxl}) {
+    @content;
+  }
+}
+
+@mixin media-4k {
+  @media (min-width: #{$breakpoint-4k}) {
+    @content;
+  }
+}
+
+/* Max-width media queries */
+@mixin media-max-xs {
+  @media (max-width: #{$breakpoint-sm - 1px}) {
+    @content;
+  }
+}
+
+@mixin media-max-sm {
+  @media (max-width: #{$breakpoint-md - 1px}) {
+    @content;
+  }
+}
+
+@mixin media-max-md {
+  @media (max-width: #{$breakpoint-lg - 1px}) {
+    @content;
+  }
+}
+
+@mixin media-max-lg {
+  @media (max-width: #{$breakpoint-xl - 1px}) {
+    @content;
+  }
+}
+
+@mixin media-max-xl {
+  @media (max-width: #{$breakpoint-xxl - 1px}) {
+    @content;
+  }
+}
+
+@mixin media-max-xxl {
+  @media (max-width: #{$breakpoint-xxxl - 1px}) {
+    @content;
+  }
+}
+
+/* Range media queries */
+@mixin media-between($min, $max) {
+  @media (min-width: #{$min}) and (max-width: #{$max - 1px}) {
+    @content;
+  }
+}
+
+/* Container Mixin */
+@mixin container-responsive {
+  width: 100%;
+  margin: 0 auto;
+
+  // XS (0px+)
+  @include media-xs {
+    max-width: $container-xs;
+    padding: 0 $container-padding-xs;
+  }
+
+  // SM (576px+)
+  @include media-sm {
+    max-width: $container-sm;
+    padding: 0 $container-padding-sm;
+  }
+
+  // MD (768px+)
+  @include media-md {
+    max-width: $container-md;
+    padding: 0 $container-padding-md;
+  }
+
+  // LG (992px+)
+  @include media-lg {
+    max-width: $container-lg;
+    padding: 0 $container-padding-lg;
+  }
+
+  // XL (1200px+)
+  @include media-xl {
+    max-width: $container-xl;
+    padding: 0 $container-padding-xl;
+  }
+
+  // XXL (1400px+)
+  @include media-xxl {
+    max-width: $container-xxl;
+    padding: 0 $container-padding-xxl;
+  }
+
+  // XXXL (1600px+)
+  @include media-xxxl {
+    max-width: $container-xxxl;
+    padding: 0 $container-padding-xxxl;
+  }
+
+  // 4K (1920px+)
+  @include media-4k {
+    max-width: $container-4k;
+    padding: 0 $container-padding-4k;
+  }
+}
