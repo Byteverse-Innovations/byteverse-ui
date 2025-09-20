@@ -7,12 +7,12 @@ const Services: React.FC = () => {
   const { data, isLoading, isError, error } = useListAllServicesQuery(graphqlClient)
 
   return (
-    <Container fluid className="py-5 bg-deep-cove text-white">
+    <Container fluid className="py-5 bg-deep-cove">
       {/* Header Section */}
       <Row className="mb-5">
         <Col lg={12} className="text-center">
-          <h1 className="display-4 fw-bold mb-4">Our Services</h1>
-          <p className="lead mb-4">
+          <h1 className="display-4 fw-bold mb-4 text-white">Our Services</h1>
+          <p className="lead mb-4 gray-2">
             Comprehensive technology solutions tailored to your business needs.
             From concept to deployment, we're here to bring your ideas to life.
           </p>

@@ -39,7 +39,7 @@ const Contact: React.FC = () => {
     {
       icon: '📍',
       title: 'Address',
-      content: '123 Tech Street, Innovation District, San Francisco, CA 94105'
+      content: '2414 Scott Street, Hollywood FL 33020-4807'
     },
     {
       icon: '📧',
@@ -49,7 +49,7 @@ const Contact: React.FC = () => {
     {
       icon: '📞',
       title: 'Phone',
-      content: '+1 (555) 123-4567'
+      content: '+1 (305) 340-7952'
     },
     {
       icon: '🕒',
@@ -72,8 +72,8 @@ const Contact: React.FC = () => {
       {/* Header Section */}
       <Row className="mb-5">
         <Col lg={12} className="text-center">
-          <h1 className="display-4 fw-bold mb-4">Get In Touch</h1>
-          <p className="lead mb-4">
+          <h1 className="display-4 fw-bold mb-4 text-white">Get In Touch</h1>
+          <p className="lead mb-4 gray-2 fs-5">
             Ready to start your next project? We'd love to hear from you.
             Let's discuss how we can help bring your ideas to life.
           </p>
@@ -87,7 +87,7 @@ const Contact: React.FC = () => {
             <Card.Header className="bg-primary text-white">
               <h3 className="mb-0">Send us a Message</h3>
             </Card.Header>
-            <Card.Body className="p-4">
+            <Card.Body className="p-4 bg-deep-cove">
               {submitted && (
                 <Alert variant="success" className="mb-4">
                   Thank you for your message! We'll get back to you within 24 hours.
@@ -96,7 +96,7 @@ const Contact: React.FC = () => {
 
               <Form onSubmit={handleSubmit}>
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} className="mb-3 gray-2">
                     <Form.Group>
                       <Form.Label>Full Name *</Form.Label>
                       <Form.Control
@@ -109,7 +109,7 @@ const Contact: React.FC = () => {
                       />
                     </Form.Group>
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} className="mb-3 gray-2">
                     <Form.Group>
                       <Form.Label>Email Address *</Form.Label>
                       <Form.Control
@@ -125,7 +125,7 @@ const Contact: React.FC = () => {
                 </Row>
 
                 <Row>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} className="mb-3 gray-2">
                     <Form.Group>
                       <Form.Label>Phone Number</Form.Label>
                       <Form.Control
@@ -137,7 +137,7 @@ const Contact: React.FC = () => {
                       />
                     </Form.Group>
                   </Col>
-                  <Col md={6} className="mb-3">
+                  <Col md={6} className="mb-3 gray-2">
                     <Form.Group>
                       <Form.Label>Company</Form.Label>
                       <Form.Control
@@ -152,7 +152,7 @@ const Contact: React.FC = () => {
                 </Row>
 
                 <Row>
-                  <Col md={12} className="mb-3">
+                  <Col md={12} className="mb-3 gray-2">
                     <Form.Group>
                       <Form.Label>Subject *</Form.Label>
                       <Form.Select
@@ -175,7 +175,7 @@ const Contact: React.FC = () => {
                 </Row>
 
                 <Row>
-                  <Col md={12} className="mb-3">
+                  <Col md={12} className="mb-3 gray-2">
                     <Form.Group>
                       <Form.Label>Message *</Form.Label>
                       <Form.Control
@@ -204,15 +204,15 @@ const Contact: React.FC = () => {
           <div className="sticky-top" style={{ top: '2rem' }}>
             {/* Contact Info Cards */}
             {contactInfo.map((info, index) => (
-              <Card key={index} className="mb-3 border-0 shadow-sm">
-                <Card.Body>
+              <Card key={index} className="mb-3 border-0">
+                <Card.Body className='bg-deep-cove rounded shadow-sm'>
                   <div className="d-flex align-items-start">
                     <div className="me-3">
                       <span style={{ fontSize: '1.5rem' }}>{info.icon}</span>
                     </div>
                     <div>
-                      <h6 className="mb-1">{info.title}</h6>
-                      <p className="mb-0 text-muted">{info.content}</p>
+                      <h6 className="mb-1 text-white">{info.title}</h6>
+                      <p className="mb-0 gray-2">{info.content}</p>
                     </div>
                   </div>
                 </Card.Body>
@@ -220,11 +220,11 @@ const Contact: React.FC = () => {
             ))}
 
             {/* Services Offered */}
-            <Card className="border-0 shadow-sm">
-              <Card.Header className="bg-secondary text-white">
+            <Card className="border-0">
+              <Card.Header className="bg-primary text-white">
                 <h5 className="mb-0">Services We Offer</h5>
               </Card.Header>
-              <Card.Body>
+              <Card.Body className='bg-deep-cove text-white shadow-sm'>
                 <ul className="list-unstyled mb-0">
                   {services.map((service, index) => (
                     <li key={index} className="mb-2">
@@ -242,30 +242,30 @@ const Contact: React.FC = () => {
       {/* Additional Contact Methods */}
       <Row className="mt-5">
         <Col lg={12}>
-          <div className="bg-light p-5 rounded">
+          <div className="bg-deep-cove p-5 rounded">
             <Row>
               <Col lg={4} className="text-center mb-4">
                 <div className="mb-3">
                   <span style={{ fontSize: '3rem' }}>💬</span>
                 </div>
-                <h5>Live Chat</h5>
-                <p className="text-muted">Chat with us in real-time during business hours</p>
+                <h5 className='text-white fw-bold fs-4'>Live Chat</h5>
+                <p className="gray-2">Chat with us in real-time during business hours</p>
                 <Button variant="outline-primary">Start Chat</Button>
               </Col>
               <Col lg={4} className="text-center mb-4">
                 <div className="mb-3">
                   <span style={{ fontSize: '3rem' }}>📅</span>
                 </div>
-                <h5>Schedule a Call</h5>
-                <p className="text-muted">Book a consultation call at your convenience</p>
+                <h5 className='text-white fw-bold fs-4'>Schedule a Call</h5>
+                <p className="gray-2">Book a consultation call at your convenience</p>
                 <Button variant="outline-primary">Book Now</Button>
               </Col>
               <Col lg={4} className="text-center mb-4">
                 <div className="mb-3">
                   <span style={{ fontSize: '3rem' }}>📋</span>
                 </div>
-                <h5>Request Quote</h5>
-                <p className="text-muted">Get a detailed quote for your project</p>
+                <h5 className='text-white fw-bold fs-4'>Request Quote</h5>
+                <p className="gray-2">Get a detailed quote for your project</p>
                 <Button variant="outline-primary">Get Quote</Button>
               </Col>
             </Row>
@@ -276,7 +276,7 @@ const Contact: React.FC = () => {
       {/* FAQ Section */}
       <Row className="mt-5">
         <Col lg={8} className="mx-auto">
-          <h2 className="text-center mb-4">Frequently Asked Questions</h2>
+          <h2 className="text-center mb-4 text-primary fw-bold">Frequently Asked Questions</h2>
           <div className="accordion" id="faqAccordion">
             <div className="accordion-item">
               <h2 className="accordion-header">
