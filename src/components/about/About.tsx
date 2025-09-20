@@ -5,32 +5,30 @@ const About: React.FC = () => {
   const teamMembers = [
     {
       id: 1,
-      name: 'Sarah Johnson',
+      name: 'Dominique Felix',
       role: 'CEO & Founder',
       bio: '10+ years in software development and business strategy.',
-      image: 'https://via.placeholder.com/150'
     },
-    {
-      id: 2,
-      name: 'Michael Chen',
-      role: 'CTO',
-      bio: 'Expert in cloud architecture and scalable systems.',
-      image: 'https://via.placeholder.com/150'
-    },
+    // {
+    //   id: 2,
+    //   name: 'Michael Chen',
+    //   role: 'CTO',
+    //   bio: 'Expert in cloud architecture and scalable systems.',
+    //   image: 'https://via.placeholder.com/150'
+    // },
     {
       id: 3,
-      name: 'Emily Rodriguez',
-      role: 'Lead Designer',
-      bio: 'Passionate about creating intuitive user experiences.',
-      image: 'https://via.placeholder.com/150'
+      name: 'Juan Zuleta',
+      role: 'Lead Developer',
+      bio: 'Passionate about creating innovative solutions.',
     },
-    {
-      id: 4,
-      name: 'David Kim',
-      role: 'Senior Developer',
-      bio: 'Full-stack developer with expertise in modern frameworks.',
-      image: 'https://via.placeholder.com/150'
-    }
+    // {
+    //   id: 4,
+    //   name: 'David Kim',
+    //   role: 'Senior Developer',
+    //   bio: 'Full-stack developer with expertise in modern frameworks.',
+    //   image: 'https://via.placeholder.com/150'
+    // }
   ]
 
   const stats = [
@@ -67,9 +65,9 @@ const About: React.FC = () => {
     <Container fluid className="py-5">
       {/* Hero Section */}
       <Row className="mb-5">
-        <Col lg={12} className="text-center">
+        <Col lg={12} className="text-center text-white">
           <h1 className="display-4 fw-bold mb-4">About Byteverse</h1>
-          <p className="lead mb-4">
+          <p className="lead mb-4 gray-2">
             We're a passionate team of developers, designers, and strategists dedicated to
             transforming businesses through innovative technology solutions.
           </p>
@@ -79,25 +77,25 @@ const About: React.FC = () => {
       {/* Story Section */}
       <Row className="mb-5">
         <Col lg={6} className="mb-4">
-          <h2 className="mb-4">Our Story</h2>
-          <p className="mb-3">
+          <h2 className="mb-4 display-6 text-white">Our Story</h2>
+          <p className="mb-3 gray-2">
             Founded in 2016, Byteverse began with a simple mission: to help businesses
             leverage technology to achieve their goals. What started as a small team of
             passionate developers has grown into a full-service technology company.
           </p>
-          <p className="mb-3">
+          <p className="mb-3 gray-2">
             Over the years, we've worked with startups, enterprises, and everything in between.
             Each project has taught us something new and helped us refine our approach to
             delivering exceptional results.
           </p>
-          <p>
+          <p className="mb-3 gray-2">
             Today, we're proud to be trusted technology partners for businesses across
             various industries, helping them navigate the digital landscape and achieve
             sustainable growth.
           </p>
         </Col>
         <Col lg={6} className="mb-4">
-          <div className="bg-light p-4 rounded h-100">
+          <div className="bg-primary text-white p-4 rounded h-100">
             <h3 className="mb-4">Our Mission</h3>
             <p className="mb-3">
               To empower businesses with innovative technology solutions that drive growth,
@@ -113,9 +111,9 @@ const About: React.FC = () => {
       </Row>
 
       {/* Stats Section */}
-      <Row className="mb-5">
+      <Row className="mb-4">
         <Col lg={12}>
-          <div className="bg-primary text-white p-5 rounded">
+          {/* <div className="bg-primary text-white p-5 rounded">
             <Row>
               {stats.map((stat, index) => (
                 <Col lg={3} md={6} className="text-center mb-4" key={index}>
@@ -126,24 +124,24 @@ const About: React.FC = () => {
                 </Col>
               ))}
             </Row>
-          </div>
+          </div> */}
         </Col>
       </Row>
 
       {/* Values Section */}
       <Row className="mb-5">
-        <Col lg={12} className="text-center mb-4">
+        <Col lg={12} className="text-center mb-3 text-white">
           <h2 className="mb-4">Our Values</h2>
         </Col>
         {values.map((value, index) => (
           <Col lg={3} md={6} className="mb-4" key={index}>
-            <Card className="h-100 text-center border-0 shadow-sm">
-              <Card.Body>
-                <div className="mb-3">
+            <Card className="h-100 text-center border-0 bg-deep-cove text-white">
+              <Card.Body className='shadow-sm'>
+                <div className="mb-3 ">
                   <span style={{ fontSize: '3rem' }}>{value.icon}</span>
                 </div>
                 <Card.Title>{value.title}</Card.Title>
-                <Card.Text>{value.description}</Card.Text>
+                <Card.Text className='gray-2'>{value.description}</Card.Text>
               </Card.Body>
             </Card>
           </Col>
@@ -151,38 +149,40 @@ const About: React.FC = () => {
       </Row>
 
       {/* Team Section */}
-      <Row className="mb-5">
+      <Row className="mb-5 px-5">
         <Col lg={12} className="text-center mb-4">
-          <h2 className="mb-4">Meet Our Team</h2>
-          <p className="lead">
+          <h2 className="mb-4 text-white">Meet Our Team</h2>
+          <p className="lead gray-2">
             The talented individuals who make Byteverse exceptional
           </p>
         </Col>
         {teamMembers.map((member) => (
-          <Col lg={3} md={6} className="mb-4" key={member.id}>
-            <Card className="h-100 text-center border-0 shadow-sm">
-              <Card.Body>
-                <img
+          <Col lg={6} md={6} className="mb-4 d-flex justify-content-center" key={member.id}>
+            <div>
+            <Card style={{borderRadius: '50%' }} className="h-100 py-5 px-2 text-center border-0 bord bg-deep-cove text-white">
+              <Card.Body className="shadow-sm">
+                {/* <img
                   src={member.image}
                   alt={member.name}
                   className="rounded-circle mb-3"
                   style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-                />
+                /> */}
                 <Card.Title>{member.name}</Card.Title>
-                <Card.Subtitle className="mb-2 text-muted">{member.role}</Card.Subtitle>
-                <Card.Text>{member.bio}</Card.Text>
+                <Card.Subtitle className="mb-2 fw-bold fs-5 text-primary">{member.role}</Card.Subtitle>
+                {/* <Card.Text>{member.bio}</Card.Text> */}
               </Card.Body>
             </Card>
+            </div>
           </Col>
         ))}
       </Row>
 
       {/* Skills Section */}
-      <Row className="mb-5">
-        <Col lg={12} className="text-center mb-4">
+      <Row className="mb-4">
+        <Col lg={12} className="text-center mb-4 text-white">
           <h2 className="mb-4">Our Expertise</h2>
         </Col>
-        <Col lg={6} className="mb-4">
+        <Col lg={6} className="mb-4 text-white text-center">
           <h5>Frontend Development</h5>
           <ProgressBar now={95} className="mb-3" />
           <h5>Backend Development</h5>
@@ -190,7 +190,7 @@ const About: React.FC = () => {
           <h5>Mobile Development</h5>
           <ProgressBar now={85} className="mb-3" />
         </Col>
-        <Col lg={6} className="mb-4">
+        <Col lg={6} className="mb-4 text-white text-center">
           <h5>UI/UX Design</h5>
           <ProgressBar now={88} className="mb-3" />
           <h5>Cloud Solutions</h5>
@@ -203,15 +203,15 @@ const About: React.FC = () => {
       {/* Call to Action */}
       <Row>
         <Col lg={8} className="mx-auto text-center">
-          <div className="bg-light p-5 rounded">
-            <h2 className="mb-4">Ready to Work With Us?</h2>
+          <div className="bg-deep-cove text-white p-5 rounded">
+            <h2 className="mb-3">Ready to Work With Us?</h2>
             <p className="lead mb-4">
               Let's discuss how we can help bring your vision to life with our expertise and passion for technology.
             </p>
             <button className="btn btn-primary btn-lg me-3">
               Start a Project
             </button>
-            <button className="btn btn-outline-secondary btn-lg">
+            <button className="btn btn-outline-secondary btn-lg disabled">
               View Our Work
             </button>
           </div>
