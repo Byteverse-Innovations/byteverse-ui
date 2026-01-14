@@ -26,7 +26,7 @@ const Services: React.FC = () => {
             <Spinner animation="border" role="status" variant="light">
               <span className="visually-hidden">Loading...</span>
             </Spinner>
-            <p className="mt-3">Loading services...</p>
+            <p className="mt-3 text-white">Loading services...</p>
           </Col>
         </Row>
       )}

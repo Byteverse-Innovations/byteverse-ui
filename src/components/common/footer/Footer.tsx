@@ -5,21 +5,21 @@ import './footer.scss'
 
 const Footer: React.FC = () => {
   return (
-    <footer className="footer bg-deep-cove text-white py-5">
-      <Container>
+    <footer className="footer bg-deep-cove text-white py-3">
+      <Container fluid className="px-3 px-md-4 px-lg-5">
         <Row className="align-items-center">
           {/* Logo and Company Info */}
-          <Col lg={4} className="mb-4 mb-lg-0">
-            <div className="d-flex align-items-center mb-3">
+          <Col lg={4} className="mb-2 mb-lg-0">
+            <div className="d-flex align-items-center mb-2">
               <img src={logo} alt="Byteverse" className="footer-logo me-3" />
             </div>
           </Col>
 
           {/* Contact Info */}
           <Col lg={{ span: 3, offset: 5 }} className='text-md-end get-in-touch'>
-            <h6 className="text-primary mb-3 fw-semibold">Get In Touch</h6>
+            <h6 className="text-primary mb-2 fw-semibold">Get In Touch</h6>
             <div className="contact-info">
-              <div className="mb-2">
+              <div className="mb-0">
                 <i className="bi bi-envelope me-2 text-primary"></i>
                 <a href='mailto:info@byteverseinnov.com' className="text-light text-decoration-none">reach@byteverseinnov.com</a>
               </div>
@@ -28,7 +28,7 @@ const Footer: React.FC = () => {
         </Row>
 
         {/* Bottom Section */}
-        <Row className="mt-4 pt-4">
+        <Row className="mt-3 pt-3">
           <Col md={6}>
             <p className="text-light mb-0 small">
               © 2025 Byteverse. All rights reserved.

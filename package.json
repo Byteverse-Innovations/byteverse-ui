@@ -21,6 +21,11 @@
     "diff:prod": "cdk diff --context env=prod"
   },
   "dependencies": {
+    "@aws-crypto/sha256-js": "^5.2.0",
+    "@aws-sdk/credential-providers": "^3.967.0",
+    "@aws-sdk/protocol-http": "^3.370.0",
+    "@aws-sdk/signature-v4": "^3.370.0",
+    "@aws-sdk/types": "^3.965.0",
     "@react-spring/web": "^10.0.1",
     "@react-three/drei": "^10.7.4",
     "@react-three/fiber": "^9.3.0",

@@ -13,12 +13,12 @@ import { Card } from 'react-bootstrap'
 const App = () => {
   return (
     <Router>
-      <div className="App p-5">
-        <Card className='bg-deep-cove' style={{ border: 'none' }}>
-          <Card.Header style={{ marginLeft: '36px', marginRight: '36px' }}>
+      <div className="App p-3 p-md-4 p-lg-5">
+        <Card className='bg-deep-cove w-100' style={{ border: 'none' }}>
+          <Card.Header className="px-3 px-md-4 px-lg-5 pt-2 pt-md-3">
             <Navigation />
           </Card.Header>
-          <Card.Body style={{ marginLeft: '36px', marginRight: '36px' }}>
+          <Card.Body className="px-0">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/services" element={<Services />} />
