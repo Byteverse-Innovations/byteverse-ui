@@ -109,9 +109,17 @@ export class UIPipelineStack extends cdk.Stack {
           },
           build: {
             commands: [
-              'echo "Environment variables check:"',
+              'echo "=== Environment Variables Check (Shell) ==="',
               'echo "VITE_AWS_REGION=${VITE_AWS_REGION:-NOT_SET}"',
+              'echo "VITE_APPSYNC_ENDPOINT=${VITE_APPSYNC_ENDPOINT:-NOT_SET}"',
               'echo "VITE_COGNITO_IDENTITY_POOL_ID=${VITE_COGNITO_IDENTITY_POOL_ID:-NOT_SET}"',
+              'echo "VITE_COGNITO_USER_POOL_ID=${VITE_COGNITO_USER_POOL_ID:-NOT_SET}"',
+              'echo "VITE_COGNITO_USER_POOL_WEB_CLIENT_ID=${VITE_COGNITO_USER_POOL_WEB_CLIENT_ID:-NOT_SET}"',
+              'echo "VITE_APPSYNC_API_KEY=${VITE_APPSYNC_API_KEY:+SET}"',
+              'echo "=== Environment Variables Check (Node.js) ==="',
+              'node -e "console.log(\'VITE_AWS_REGION:\', process.env.VITE_AWS_REGION || \'NOT_SET\')"',
+              'node -e "console.log(\'VITE_COGNITO_IDENTITY_POOL_ID:\', process.env.VITE_COGNITO_IDENTITY_POOL_ID || \'NOT_SET\')"',
+              'echo "=== Starting Build ==="',
               'npm run build'
             ]
           }
