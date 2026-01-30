@@ -4,6 +4,7 @@ import { SignatureV4 } from '@aws-sdk/signature-v4'
 import { HttpRequest } from '@aws-sdk/protocol-http'
 import { Sha256 } from '@aws-crypto/sha256-js'
 import type { AwsCredentialIdentity, Provider } from '@aws-sdk/types'
+import { print } from 'graphql'
 
 // Get configuration from environment variables
 const getAppSyncConfig = () => {
@@ -95,7 +96,19 @@ const signedRequest = async <TData = any, TVariables = Variables>(
   })
 
   // Parse the GraphQL query string
-  const query = typeof document === 'string' ? document : document.loc?.source.body || ''
+  // Handle both string and DocumentNode types
+  let query: string
+  if (typeof document === 'string') {
+    query = document
+  } else {
+    // DocumentNode - serialize it back to a string using print()
+    query = print(document)
+  }
+  
+  // Validate that we have a query
+  if (!query || query.trim().length === 0) {
+    throw new Error('GraphQL query cannot be empty')
+  }
 
   // Create HTTP request
   const url = new URL(endpoint)
@@ -153,10 +166,27 @@ const signedRequest = async <TData = any, TVariables = Variables>(
 // Create a GraphQL client instance with IAM authentication
 class IAMGraphQLClient {
   request<TData = any, TVariables = Variables>(
-    document: RequestDocument,
+    documentOrOptions: RequestDocument | { document: RequestDocument; variables?: TVariables; requestHeaders?: HeadersInit },
     variables?: TVariables
   ): Promise<TData> {
-    return signedRequest<TData, TVariables>(document, variables)
+    // Handle both call signatures:
+    // 1. request(document, variables) - separate parameters
+    // 2. request({ document, variables, requestHeaders }) - object parameter
+    let document: RequestDocument
+    let vars: TVariables | undefined
+    
+    if (typeof documentOrOptions === 'object' && documentOrOptions !== null && 'document' in documentOrOptions) {
+      // Object format: { document, variables, requestHeaders }
+      document = documentOrOptions.document
+      vars = documentOrOptions.variables as TVariables | undefined
+      // Note: requestHeaders are not used in IAM authentication as we sign the request ourselves
+    } else {
+      // Separate parameters format: (document, variables)
+      document = documentOrOptions as RequestDocument
+      vars = variables
+    }
+    
+    return signedRequest<TData, TVariables>(document, vars)
   }
 }
 
