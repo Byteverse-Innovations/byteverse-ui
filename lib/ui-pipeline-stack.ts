@@ -4,6 +4,7 @@ import * as codepipeline from 'aws-cdk-lib/aws-codepipeline'
 import * as codepipeline_actions from 'aws-cdk-lib/aws-codepipeline-actions'
 import * as codebuild from 'aws-cdk-lib/aws-codebuild'
 import * as s3 from 'aws-cdk-lib/aws-s3'
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager'
 import { aws_iam, custom_resources } from 'aws-cdk-lib'
 import { environments } from '../config/cdk-config'
 
@@ -26,6 +27,12 @@ export class UIPipelineStack extends cdk.Stack {
     // CDK artifacts for each environment
     const cdkOutputProd = new codepipeline.Artifact()
 
+    const uiSecrets = secretsmanager.Secret.fromSecretNameV2(
+      this,
+      'UISecrets',
+      'byteverse-ui/env-vars'
+    )
+
     // CodeBuild project for building the UI
     const buildProject = new codebuild.PipelineProject(this, 'UiBuildProject', {
       environment: {
@@ -33,7 +40,33 @@ export class UIPipelineStack extends cdk.Stack {
         privileged: true,
       },
       environmentVariables: {
-        // Add environment variables if needed
+        // All environment variables are now stored in Secrets Manager
+        // The secret should contain a JSON object with all VITE_* variables
+        // Format: secretArn:jsonKey::
+        VITE_AWS_REGION: {
+          value: `${uiSecrets.secretArn}:VITE_AWS_REGION::`,
+          type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
+        },
+        VITE_APPSYNC_ENDPOINT: {
+          value: `${uiSecrets.secretArn}:VITE_APPSYNC_ENDPOINT::`,
+          type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
+        },
+        VITE_COGNITO_IDENTITY_POOL_ID: {
+          value: `${uiSecrets.secretArn}:VITE_COGNITO_IDENTITY_POOL_ID::`,
+          type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
+        },
+        VITE_COGNITO_USER_POOL_ID: {
+          value: `${uiSecrets.secretArn}:VITE_COGNITO_USER_POOL_ID::`,
+          type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
+        },
+        VITE_COGNITO_USER_POOL_WEB_CLIENT_ID: {
+          value: `${uiSecrets.secretArn}:VITE_COGNITO_USER_POOL_WEB_CLIENT_ID::`,
+          type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
+        },
+        VITE_APPSYNC_API_KEY: {
+          value: `${uiSecrets.secretArn}:VITE_APPSYNC_API_KEY::`,
+          type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
+        },
       },
       buildSpec: codebuild.BuildSpec.fromObject({
         version: '0.2',
@@ -124,6 +157,9 @@ export class UIPipelineStack extends cdk.Stack {
     cdkPermissions.forEach(project => {
       artifactBucket.grantReadWrite(project)
     })
+
+    // Grant permissions to read secrets from Secrets Manager
+    uiSecrets.grantRead(buildProject.role as aws_iam.Role)
 
     // Pipeline definition
     const pipeline = new codepipeline.Pipeline(this, 'UIPipeline', {

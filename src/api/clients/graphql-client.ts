@@ -32,8 +32,6 @@ const getCredentialsProvider = (): Provider<AwsCredentialIdentity> | null => {
     return null
   }
 
-  console.log(`Initializing Cognito Identity Pool: ${identityPoolId} in region: ${region}`)
-
   try {
     credentialsProvider = fromCognitoIdentityPool({
       clientConfig: { region },
