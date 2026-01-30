@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to update the AWS Secrets Manager secret for Byteverse UI environment variables
+# Script to create or update the AWS Secrets Manager secret for Byteverse UI environment variables
 # Usage: ./scripts/update-secrets.sh
 
 SECRET_NAME="byteverse-ui/env-vars"
@@ -24,18 +24,39 @@ SECRET_JSON=$(cat <<EOF
 EOF
 )
 
-# Update the secret
-echo "Updating secret: $SECRET_NAME"
-aws secretsmanager put-secret-value \
-  --secret-id "$SECRET_NAME" \
-  --secret-string "$SECRET_JSON" \
-  --region "$REGION"
-
-if [ $? -eq 0 ]; then
-  echo "Secret updated successfully!"
+# Check if secret exists
+echo "Checking if secret exists: $SECRET_NAME"
+if aws secretsmanager describe-secret --secret-id "$SECRET_NAME" --region "$REGION" >/dev/null 2>&1; then
+  # Secret exists, update it
+  echo "Secret exists. Updating..."
+  aws secretsmanager put-secret-value \
+    --secret-id "$SECRET_NAME" \
+    --secret-string "$SECRET_JSON" \
+    --region "$REGION"
+  
+  if [ $? -eq 0 ]; then
+    echo "Secret updated successfully!"
+  else
+    echo "Error updating secret. Make sure:"
+    echo "1. AWS CLI is configured"
+    echo "2. You have permissions to update secrets"
+    exit 1
+  fi
 else
-  echo "Error updating secret. Make sure:"
-  echo "1. AWS CLI is configured"
-  echo "2. You have permissions to update secrets"
-  echo "3. The secret exists (it will be created when you deploy the CDK stack)"
+  # Secret doesn't exist, create it
+  echo "Secret does not exist. Creating new secret..."
+  aws secretsmanager create-secret \
+    --name "$SECRET_NAME" \
+    --description "Environment variables for Byteverse UI build process" \
+    --secret-string "$SECRET_JSON" \
+    --region "$REGION"
+  
+  if [ $? -eq 0 ]; then
+    echo "Secret created successfully!"
+  else
+    echo "Error creating secret. Make sure:"
+    echo "1. AWS CLI is configured"
+    echo "2. You have permissions to create secrets"
+    exit 1
+  fi
 fi

@@ -27,11 +27,39 @@ export class UIPipelineStack extends cdk.Stack {
     // CDK artifacts for each environment
     const cdkOutputProd = new codepipeline.Artifact()
 
+    // Get the full ARN of the secret using a custom resource
+    // CodeBuild requires the full ARN with random suffix for JSON key references
+    const secretName = 'byteverse-ui/env-vars'
     const uiSecrets = secretsmanager.Secret.fromSecretNameV2(
       this,
       'UISecrets',
-      'byteverse-ui/env-vars'
+      secretName
     )
+    
+    // Use a custom resource to get the full ARN with random suffix
+    // Note: We use the secret name (not ARN) in the API call, so we need permission for any ARN matching the name
+    const getSecretArn = new custom_resources.AwsCustomResource(this, 'GetSecretArn', {
+      onCreate: {
+        service: 'SecretsManager',
+        action: 'describeSecret',
+        parameters: {
+          SecretId: secretName,
+        },
+        physicalResourceId: custom_resources.PhysicalResourceId.fromResponse('ARN'),
+      },
+      policy: custom_resources.AwsCustomResourcePolicy.fromStatements([
+        new aws_iam.PolicyStatement({
+          actions: ['secretsmanager:DescribeSecret'],
+          // Use wildcard pattern since the ARN includes a random suffix
+          resources: [
+            `arn:aws:secretsmanager:${this.region}:${this.account}:secret:${secretName}-*`,
+          ],
+          effect: aws_iam.Effect.ALLOW,
+        }),
+      ]),
+    })
+    
+    const secretFullArn = getSecretArn.getResponseField('ARN')
 
     // CodeBuild project for building the UI
     const buildProject = new codebuild.PipelineProject(this, 'UiBuildProject', {
@@ -41,30 +69,30 @@ export class UIPipelineStack extends cdk.Stack {
       },
       environmentVariables: {
         // All environment variables are now stored in Secrets Manager
-        // The secret should contain a JSON object with all VITE_* variables
-        // Format: secretArn:jsonKey::
+        // The secret contains a JSON object with all VITE_* variables
+        // Format for JSON keys: arn:aws:secretsmanager:region:account:secret:name-6chars:jsonKey::
         VITE_AWS_REGION: {
-          value: `${uiSecrets.secretArn}:VITE_AWS_REGION::`,
+          value: `${secretFullArn}:VITE_AWS_REGION::`,
           type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
         },
         VITE_APPSYNC_ENDPOINT: {
-          value: `${uiSecrets.secretArn}:VITE_APPSYNC_ENDPOINT::`,
+          value: `${secretFullArn}:VITE_APPSYNC_ENDPOINT::`,
           type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
         },
         VITE_COGNITO_IDENTITY_POOL_ID: {
-          value: `${uiSecrets.secretArn}:VITE_COGNITO_IDENTITY_POOL_ID::`,
+          value: `${secretFullArn}:VITE_COGNITO_IDENTITY_POOL_ID::`,
           type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
         },
         VITE_COGNITO_USER_POOL_ID: {
-          value: `${uiSecrets.secretArn}:VITE_COGNITO_USER_POOL_ID::`,
+          value: `${secretFullArn}:VITE_COGNITO_USER_POOL_ID::`,
           type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
         },
         VITE_COGNITO_USER_POOL_WEB_CLIENT_ID: {
-          value: `${uiSecrets.secretArn}:VITE_COGNITO_USER_POOL_WEB_CLIENT_ID::`,
+          value: `${secretFullArn}:VITE_COGNITO_USER_POOL_WEB_CLIENT_ID::`,
           type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
         },
         VITE_APPSYNC_API_KEY: {
-          value: `${uiSecrets.secretArn}:VITE_APPSYNC_API_KEY::`,
+          value: `${secretFullArn}:VITE_APPSYNC_API_KEY::`,
           type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
         },
       },
@@ -81,6 +109,9 @@ export class UIPipelineStack extends cdk.Stack {
           },
           build: {
             commands: [
+              'echo "Environment variables check:"',
+              'echo "VITE_AWS_REGION=${VITE_AWS_REGION:-NOT_SET}"',
+              'echo "VITE_COGNITO_IDENTITY_POOL_ID=${VITE_COGNITO_IDENTITY_POOL_ID:-NOT_SET}"',
               'npm run build'
             ]
           }
