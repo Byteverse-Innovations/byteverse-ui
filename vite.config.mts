@@ -4,17 +4,28 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
-  // Also merge with process.env to ensure CodeBuild environment variables are available
   const fileEnv = loadEnv(mode, process.cwd(), '')
+  
+  // Prioritize process.env (from CodeBuild) over file-based env
+  // This ensures CodeBuild environment variables take precedence
   const env = {
-    ...fileEnv,
-    // Override with process.env values (from CodeBuild) if they exist
     VITE_AWS_REGION: process.env.VITE_AWS_REGION || fileEnv.VITE_AWS_REGION,
     VITE_APPSYNC_ENDPOINT: process.env.VITE_APPSYNC_ENDPOINT || fileEnv.VITE_APPSYNC_ENDPOINT,
     VITE_COGNITO_IDENTITY_POOL_ID: process.env.VITE_COGNITO_IDENTITY_POOL_ID || fileEnv.VITE_COGNITO_IDENTITY_POOL_ID,
     VITE_COGNITO_USER_POOL_ID: process.env.VITE_COGNITO_USER_POOL_ID || fileEnv.VITE_COGNITO_USER_POOL_ID,
     VITE_COGNITO_USER_POOL_WEB_CLIENT_ID: process.env.VITE_COGNITO_USER_POOL_WEB_CLIENT_ID || fileEnv.VITE_COGNITO_USER_POOL_WEB_CLIENT_ID,
     VITE_APPSYNC_API_KEY: process.env.VITE_APPSYNC_API_KEY || fileEnv.VITE_APPSYNC_API_KEY,
+  }
+  
+  // Log environment variables during build (for debugging in CI/CD)
+  if (process.env.CI || process.env.CODEBUILD_BUILD_ID) {
+    console.log('=== Vite Config - Environment Variables ===')
+    console.log('VITE_AWS_REGION:', env.VITE_AWS_REGION ? 'SET' : 'NOT_SET')
+    console.log('VITE_APPSYNC_ENDPOINT:', env.VITE_APPSYNC_ENDPOINT ? 'SET' : 'NOT_SET')
+    console.log('VITE_COGNITO_IDENTITY_POOL_ID:', env.VITE_COGNITO_IDENTITY_POOL_ID ? 'SET' : 'NOT_SET')
+    console.log('VITE_COGNITO_USER_POOL_ID:', env.VITE_COGNITO_USER_POOL_ID ? 'SET' : 'NOT_SET')
+    console.log('VITE_COGNITO_USER_POOL_WEB_CLIENT_ID:', env.VITE_COGNITO_USER_POOL_WEB_CLIENT_ID ? 'SET' : 'NOT_SET')
+    console.log('VITE_APPSYNC_API_KEY:', env.VITE_APPSYNC_API_KEY ? 'SET' : 'NOT_SET')
   }
   
   return {
