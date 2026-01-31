@@ -63,41 +63,21 @@ export class UIPipelineStack extends cdk.Stack {
             commands: [
               'echo "=== Fetching secrets from Secrets Manager ==="',
               'SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id byteverse-ui/env-vars --region us-east-1 --query SecretString --output text)',
-              'echo "Secret fetched successfully (length: ${#SECRET_JSON})"',
-              'echo "=== Verifying secret JSON structure ==="',
-              'echo $SECRET_JSON | jq -r ".VITE_COGNITO_IDENTITY_POOL_ID" | head -c 30 && echo " (first 30 chars)" || echo "Failed to parse VITE_COGNITO_IDENTITY_POOL_ID"',
               'echo "=== Creating .env file from Secrets Manager ==="',
-              'echo "VITE_AWS_REGION=$(echo $SECRET_JSON | jq -r .VITE_AWS_REGION)" >> .env',
-              'echo "VITE_APPSYNC_ENDPOINT=$(echo $SECRET_JSON | jq -r .VITE_APPSYNC_ENDPOINT)" >> .env',
-              'IDENTITY_POOL_ID=$(echo $SECRET_JSON | jq -r .VITE_COGNITO_IDENTITY_POOL_ID)',
-              'echo "VITE_COGNITO_IDENTITY_POOL_ID=$IDENTITY_POOL_ID" >> .env',
-              'echo "VITE_COGNITO_USER_POOL_ID=$(echo $SECRET_JSON | jq -r .VITE_COGNITO_USER_POOL_ID)" >> .env',
-              'echo "VITE_COGNITO_USER_POOL_WEB_CLIENT_ID=$(echo $SECRET_JSON | jq -r .VITE_COGNITO_USER_POOL_WEB_CLIENT_ID)" >> .env',
-              'echo "VITE_APPSYNC_API_KEY=$(echo $SECRET_JSON | jq -r .VITE_APPSYNC_API_KEY)" >> .env',
-              'echo "=== Verifying .env file contents ==="',
-              'echo "Full .env file (values masked):"',
-              'cat .env | sed "s/=.*/=***/" || echo ".env file not created"',
-              'echo "Checking actual value lengths:"',
-              'IDENTITY_POOL_LENGTH=$(grep "VITE_COGNITO_IDENTITY_POOL_ID" .env | cut -d= -f2 | wc -c)',
-              'echo "VITE_COGNITO_IDENTITY_POOL_ID length: $IDENTITY_POOL_LENGTH"',
-              'AWS_REGION_LENGTH=$(grep "VITE_AWS_REGION" .env | cut -d= -f2 | wc -c)',
-              'echo "VITE_AWS_REGION length: $AWS_REGION_LENGTH"',
-              'echo "First 40 chars of Identity Pool ID from .env:"',
-              'grep "VITE_COGNITO_IDENTITY_POOL_ID" .env | cut -d= -f2 | head -c 40'
+              'printf "VITE_AWS_REGION=%s\\n" "$(echo $SECRET_JSON | jq -r .VITE_AWS_REGION)" > .env',
+              'printf "VITE_APPSYNC_ENDPOINT=%s\\n" "$(echo $SECRET_JSON | jq -r .VITE_APPSYNC_ENDPOINT)" >> .env',
+              'printf "VITE_COGNITO_IDENTITY_POOL_ID=%s\\n" "$(echo $SECRET_JSON | jq -r .VITE_COGNITO_IDENTITY_POOL_ID)" >> .env',
+              'printf "VITE_COGNITO_USER_POOL_ID=%s\\n" "$(echo $SECRET_JSON | jq -r .VITE_COGNITO_USER_POOL_ID)" >> .env',
+              'printf "VITE_COGNITO_USER_POOL_WEB_CLIENT_ID=%s\\n" "$(echo $SECRET_JSON | jq -r .VITE_COGNITO_USER_POOL_WEB_CLIENT_ID)" >> .env',
+              'printf "VITE_APPSYNC_API_KEY=%s\\n" "$(echo $SECRET_JSON | jq -r .VITE_APPSYNC_API_KEY)" >> .env',
+              'echo "=== Verifying .env file ==="',
+              'cat .env | sed "s/=.*/=***/" || echo ".env file not created"'
             ]
           },
           build: {
             commands: [
               'echo "=== Starting Build ==="',
-              'npm run build',
-              'echo "=== Verifying Built Files ==="',
-              'echo "Extracting actual values from built files:"',
-              'grep -o "VITE_COGNITO_IDENTITY_POOL_ID[^,}]*" dist/assets/*.js | head -1 || echo "Pattern not found"',
-              'grep -o "region[^,}]*" dist/assets/*.js | grep -i "us-east\|cognito" | head -3 || echo "Pattern not found"',
-              'echo "Checking for empty strings or undefined:"',
-              'grep -o "\"\"\\|null\\|undefined" dist/assets/*.js | head -5 || echo "No empty values found"',
-              'echo "Sample of built file content around identityPoolId:"',
-              'grep -o ".{0,50}identityPoolId.{0,50}" dist/assets/*.js | head -1 || echo "Not found"'
+              'npm run build'
             ]
           }
         },
