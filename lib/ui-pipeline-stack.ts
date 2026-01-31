@@ -129,9 +129,13 @@ export class UIPipelineStack extends cdk.Stack {
               'echo "=== Starting Build ==="',
               'npm run build',
               'echo "=== Verifying Built Files ==="',
-              'echo "Checking if env vars are embedded in built files..."',
-              'grep -r "VITE_COGNITO_IDENTITY_POOL_ID" dist/ | head -1 | cut -c1-100 || echo "Pattern not found in dist/"',
-              'grep -r "VITE_AWS_REGION" dist/ | head -1 | cut -c1-100 || echo "Pattern not found in dist/"'
+              'echo "Extracting actual values from built files:"',
+              'grep -o "VITE_COGNITO_IDENTITY_POOL_ID[^,}]*" dist/assets/*.js | head -1 || echo "Pattern not found"',
+              'grep -o "region[^,}]*" dist/assets/*.js | grep -i "us-east\|cognito" | head -3 || echo "Pattern not found"',
+              'echo "Checking for empty strings or undefined:"',
+              'grep -o "\"\"\\|null\\|undefined" dist/assets/*.js | head -5 || echo "No empty values found"',
+              'echo "Sample of built file content around identityPoolId:"',
+              'grep -o ".{0,50}identityPoolId.{0,50}" dist/assets/*.js | head -1 || echo "Not found"'
             ]
           }
         },

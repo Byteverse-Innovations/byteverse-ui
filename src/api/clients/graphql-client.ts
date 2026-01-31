@@ -12,6 +12,13 @@ const getAppSyncConfig = () => {
   const endpoint = import.meta.env.VITE_APPSYNC_ENDPOINT || 'https://api.byteverseinnov.com/graphql'
   const identityPoolId = import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID
 
+  // Debug logging in production to verify values are embedded
+  if (import.meta.env.PROD || !import.meta.env.DEV) {
+    console.log('[AppSync Config] Region:', region)
+    console.log('[AppSync Config] Endpoint:', endpoint)
+    console.log('[AppSync Config] Identity Pool ID:', identityPoolId ? `${identityPoolId.substring(0, 20)}... (length: ${identityPoolId.length})` : 'NOT SET')
+  }
+
   return { region, endpoint, identityPoolId }
 }
 
