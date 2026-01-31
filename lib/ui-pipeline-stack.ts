@@ -116,8 +116,12 @@ export class UIPipelineStack extends cdk.Stack {
               'echo "VITE_COGNITO_USER_POOL_ID=${VITE_COGNITO_USER_POOL_ID}" >> .env',
               'echo "VITE_COGNITO_USER_POOL_WEB_CLIENT_ID=${VITE_COGNITO_USER_POOL_WEB_CLIENT_ID}" >> .env',
               'echo "VITE_APPSYNC_API_KEY=${VITE_APPSYNC_API_KEY}" >> .env',
-              'echo "=== Verifying .env file contents (values masked) ==="',
-              'cat .env | sed "s/=.*/=***/" || echo ".env file not created"'
+              'echo "=== Verifying .env file contents ==="',
+              'echo "Number of lines:"',
+              'wc -l .env || echo ".env file not created"',
+              'echo "Checking value lengths (first 20 chars shown):"',
+              'grep "VITE_COGNITO_IDENTITY_POOL_ID" .env | cut -d= -f2 | head -c 20 && echo " (length: $(grep VITE_COGNITO_IDENTITY_POOL_ID .env | cut -d= -f2 | wc -c))" || echo "NOT_FOUND"',
+              'grep "VITE_AWS_REGION" .env | cut -d= -f2 && echo " (length: $(grep VITE_AWS_REGION .env | cut -d= -f2 | wc -c))" || echo "NOT_FOUND"'
             ]
           },
           build: {
