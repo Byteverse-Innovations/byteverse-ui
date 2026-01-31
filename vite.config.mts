@@ -10,13 +10,14 @@ export default defineConfig(({ mode }) => {
 
   // Prioritize fileEnv (from .env file) over process.env
   // The .env file is created in CodeBuild pre_build phase with actual values
+  // Trim values to remove any whitespace/newlines that might be in the .env file
   const env = {
-    VITE_AWS_REGION: fileEnv.VITE_AWS_REGION || process.env.VITE_AWS_REGION || 'us-east-1',
-    VITE_APPSYNC_ENDPOINT: fileEnv.VITE_APPSYNC_ENDPOINT || process.env.VITE_APPSYNC_ENDPOINT || '',
-    VITE_COGNITO_IDENTITY_POOL_ID: fileEnv.VITE_COGNITO_IDENTITY_POOL_ID || process.env.VITE_COGNITO_IDENTITY_POOL_ID || '',
-    VITE_COGNITO_USER_POOL_ID: fileEnv.VITE_COGNITO_USER_POOL_ID || process.env.VITE_COGNITO_USER_POOL_ID || '',
-    VITE_COGNITO_USER_POOL_WEB_CLIENT_ID: fileEnv.VITE_COGNITO_USER_POOL_WEB_CLIENT_ID || process.env.VITE_COGNITO_USER_POOL_WEB_CLIENT_ID || '',
-    VITE_APPSYNC_API_KEY: fileEnv.VITE_APPSYNC_API_KEY || process.env.VITE_APPSYNC_API_KEY || '',
+    VITE_AWS_REGION: (fileEnv.VITE_AWS_REGION || process.env.VITE_AWS_REGION || 'us-east-1').trim(),
+    VITE_APPSYNC_ENDPOINT: (fileEnv.VITE_APPSYNC_ENDPOINT || process.env.VITE_APPSYNC_ENDPOINT || '').trim(),
+    VITE_COGNITO_IDENTITY_POOL_ID: (fileEnv.VITE_COGNITO_IDENTITY_POOL_ID || process.env.VITE_COGNITO_IDENTITY_POOL_ID || '').trim(),
+    VITE_COGNITO_USER_POOL_ID: (fileEnv.VITE_COGNITO_USER_POOL_ID || process.env.VITE_COGNITO_USER_POOL_ID || '').trim(),
+    VITE_COGNITO_USER_POOL_WEB_CLIENT_ID: (fileEnv.VITE_COGNITO_USER_POOL_WEB_CLIENT_ID || process.env.VITE_COGNITO_USER_POOL_WEB_CLIENT_ID || '').trim(),
+    VITE_APPSYNC_API_KEY: (fileEnv.VITE_APPSYNC_API_KEY || process.env.VITE_APPSYNC_API_KEY || '').trim(),
   }
 
   // Log environment variables during build (for debugging in CI/CD)
@@ -43,6 +44,12 @@ export default defineConfig(({ mode }) => {
     console.log('Final values being used:')
     console.log('  VITE_AWS_REGION:', env.VITE_AWS_REGION ? `${env.VITE_AWS_REGION.substring(0, 10)}... (length: ${env.VITE_AWS_REGION.length})` : 'NOT_SET')
     console.log('  VITE_COGNITO_IDENTITY_POOL_ID:', env.VITE_COGNITO_IDENTITY_POOL_ID ? `${env.VITE_COGNITO_IDENTITY_POOL_ID.substring(0, 20)}... (length: ${env.VITE_COGNITO_IDENTITY_POOL_ID.length})` : 'NOT_SET')
+    console.log('Values being stringified for define:')
+    console.log('  VITE_COGNITO_IDENTITY_POOL_ID stringified:', JSON.stringify(env.VITE_COGNITO_IDENTITY_POOL_ID))
+    console.log('  VITE_AWS_REGION stringified:', JSON.stringify(env.VITE_AWS_REGION))
+    console.log('  VITE_COGNITO_IDENTITY_POOL_ID type:', typeof env.VITE_COGNITO_IDENTITY_POOL_ID)
+    console.log('  VITE_COGNITO_IDENTITY_POOL_ID is empty string?', env.VITE_COGNITO_IDENTITY_POOL_ID === '')
+    console.log('  VITE_COGNITO_IDENTITY_POOL_ID is undefined?', env.VITE_COGNITO_IDENTITY_POOL_ID === undefined)
   }
 
   return {
