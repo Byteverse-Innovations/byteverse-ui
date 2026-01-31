@@ -35,7 +35,7 @@ export class UIPipelineStack extends cdk.Stack {
       'UISecrets',
       secretName
     )
-    
+
     // Use a custom resource to get the full ARN with random suffix
     // Note: We use the secret name (not ARN) in the API call, so we need permission for any ARN matching the name
     const getSecretArn = new custom_resources.AwsCustomResource(this, 'GetSecretArn', {
@@ -58,7 +58,7 @@ export class UIPipelineStack extends cdk.Stack {
         }),
       ]),
     })
-    
+
     const secretFullArn = getSecretArn.getResponseField('ARN')
 
     // CodeBuild project for building the UI
@@ -107,20 +107,27 @@ export class UIPipelineStack extends cdk.Stack {
               'npm i --force'
             ]
           },
+          pre_build: {
+            commands: [
+              'echo "=== Creating .env file from CodeBuild environment variables ==="',
+              'echo "VITE_AWS_REGION=${VITE_AWS_REGION}" >> .env',
+              'echo "VITE_APPSYNC_ENDPOINT=${VITE_APPSYNC_ENDPOINT}" >> .env',
+              'echo "VITE_COGNITO_IDENTITY_POOL_ID=${VITE_COGNITO_IDENTITY_POOL_ID}" >> .env',
+              'echo "VITE_COGNITO_USER_POOL_ID=${VITE_COGNITO_USER_POOL_ID}" >> .env',
+              'echo "VITE_COGNITO_USER_POOL_WEB_CLIENT_ID=${VITE_COGNITO_USER_POOL_WEB_CLIENT_ID}" >> .env',
+              'echo "VITE_APPSYNC_API_KEY=${VITE_APPSYNC_API_KEY}" >> .env',
+              'echo "=== Verifying .env file contents (values masked) ==="',
+              'cat .env | sed "s/=.*/=***/" || echo ".env file not created"'
+            ]
+          },
           build: {
             commands: [
-              'echo "=== Environment Variables Check (Shell) ==="',
-              'echo "VITE_AWS_REGION=${VITE_AWS_REGION:-NOT_SET}"',
-              'echo "VITE_APPSYNC_ENDPOINT=${VITE_APPSYNC_ENDPOINT:-NOT_SET}"',
-              'echo "VITE_COGNITO_IDENTITY_POOL_ID=${VITE_COGNITO_IDENTITY_POOL_ID:-NOT_SET}"',
-              'echo "VITE_COGNITO_USER_POOL_ID=${VITE_COGNITO_USER_POOL_ID:-NOT_SET}"',
-              'echo "VITE_COGNITO_USER_POOL_WEB_CLIENT_ID=${VITE_COGNITO_USER_POOL_WEB_CLIENT_ID:-NOT_SET}"',
-              'echo "VITE_APPSYNC_API_KEY=${VITE_APPSYNC_API_KEY:+SET}"',
-              'echo "=== Environment Variables Check (Node.js) ==="',
-              'node -e "console.log(\'VITE_AWS_REGION:\', process.env.VITE_AWS_REGION || \'NOT_SET\')"',
-              'node -e "console.log(\'VITE_COGNITO_IDENTITY_POOL_ID:\', process.env.VITE_COGNITO_IDENTITY_POOL_ID || \'NOT_SET\')"',
               'echo "=== Starting Build ==="',
-              'npm run build'
+              'npm run build',
+              'echo "=== Verifying Built Files ==="',
+              'echo "Checking if env vars are embedded in built files..."',
+              'grep -r "VITE_COGNITO_IDENTITY_POOL_ID" dist/ | head -1 | cut -c1-100 || echo "Pattern not found in dist/"',
+              'grep -r "VITE_AWS_REGION" dist/ | head -1 | cut -c1-100 || echo "Pattern not found in dist/"'
             ]
           }
         },

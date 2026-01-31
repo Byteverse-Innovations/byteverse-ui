@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
   const fileEnv = loadEnv(mode, process.cwd(), '')
-  
+
   // Prioritize process.env (from CodeBuild) over file-based env
   // This ensures CodeBuild environment variables take precedence
   const env = {
@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
     VITE_COGNITO_USER_POOL_WEB_CLIENT_ID: process.env.VITE_COGNITO_USER_POOL_WEB_CLIENT_ID || fileEnv.VITE_COGNITO_USER_POOL_WEB_CLIENT_ID,
     VITE_APPSYNC_API_KEY: process.env.VITE_APPSYNC_API_KEY || fileEnv.VITE_APPSYNC_API_KEY,
   }
-  
+
   // Log environment variables during build (for debugging in CI/CD)
   if (process.env.CI || process.env.CODEBUILD_BUILD_ID) {
     console.log('=== Vite Config - Environment Variables ===')
@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
     console.log('VITE_COGNITO_USER_POOL_WEB_CLIENT_ID:', env.VITE_COGNITO_USER_POOL_WEB_CLIENT_ID ? 'SET' : 'NOT_SET')
     console.log('VITE_APPSYNC_API_KEY:', env.VITE_APPSYNC_API_KEY ? 'SET' : 'NOT_SET')
   }
-  
+
   return {
     plugins: [react()],
     define: {
