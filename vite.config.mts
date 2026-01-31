@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
   // This will read from .env file created in pre_build phase
+  // loadEnv automatically reads from .env, .env.local, .env.[mode], etc.
   const fileEnv = loadEnv(mode, process.cwd(), '')
 
   // Prioritize fileEnv (from .env file) over process.env
@@ -21,6 +22,21 @@ export default defineConfig(({ mode }) => {
   // Log environment variables during build (for debugging in CI/CD)
   if (process.env.CI || process.env.CODEBUILD_BUILD_ID) {
     console.log('=== Vite Config - Environment Variables ===')
+    console.log('Mode:', mode)
+    console.log('Working directory:', process.cwd())
+    console.log('Checking if .env file exists:')
+    try {
+      const fs = require('fs')
+      const envExists = fs.existsSync('.env')
+      console.log('  .env file exists:', envExists)
+      if (envExists) {
+        const envContent = fs.readFileSync('.env', 'utf8')
+        console.log('  .env file lines:', envContent.split('\\n').length)
+        console.log('  .env file contains VITE_COGNITO_IDENTITY_POOL_ID:', envContent.includes('VITE_COGNITO_IDENTITY_POOL_ID'))
+      }
+    } catch (e) {
+      console.log('  Error checking .env file:', e.message)
+    }
     console.log('From fileEnv (.env file):')
     console.log('  VITE_AWS_REGION:', fileEnv.VITE_AWS_REGION ? `${fileEnv.VITE_AWS_REGION.substring(0, 10)}... (length: ${fileEnv.VITE_AWS_REGION.length})` : 'NOT_SET')
     console.log('  VITE_COGNITO_IDENTITY_POOL_ID:', fileEnv.VITE_COGNITO_IDENTITY_POOL_ID ? `${fileEnv.VITE_COGNITO_IDENTITY_POOL_ID.substring(0, 20)}... (length: ${fileEnv.VITE_COGNITO_IDENTITY_POOL_ID.length})` : 'NOT_SET')
@@ -31,10 +47,17 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    // Vite automatically exposes all VITE_* variables from loadEnv
-    // We don't need to manually define them - Vite handles it automatically
-    // The define below is only for non-standard variables if needed
-    // For VITE_* variables, Vite's automatic handling is sufficient
+    // Explicitly define environment variables to ensure they're embedded
+    // Even though Vite automatically exposes VITE_* variables, we define them explicitly
+    // to ensure they're properly replaced at build time
+    define: {
+      'import.meta.env.VITE_AWS_REGION': JSON.stringify(env.VITE_AWS_REGION),
+      'import.meta.env.VITE_APPSYNC_ENDPOINT': JSON.stringify(env.VITE_APPSYNC_ENDPOINT),
+      'import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID': JSON.stringify(env.VITE_COGNITO_IDENTITY_POOL_ID),
+      'import.meta.env.VITE_COGNITO_USER_POOL_ID': JSON.stringify(env.VITE_COGNITO_USER_POOL_ID),
+      'import.meta.env.VITE_COGNITO_USER_POOL_WEB_CLIENT_ID': JSON.stringify(env.VITE_COGNITO_USER_POOL_WEB_CLIENT_ID),
+      'import.meta.env.VITE_APPSYNC_API_KEY': JSON.stringify(env.VITE_APPSYNC_API_KEY),
+    },
     build: {
       outDir: 'dist',
     },
