@@ -27,8 +27,8 @@ export class UIPipelineStack extends cdk.Stack {
     // CDK artifacts for each environment
     const cdkOutputProd = new codepipeline.Artifact()
 
-    // Get the full ARN of the secret using a custom resource
-    // CodeBuild requires the full ARN with random suffix for JSON key references
+    // Reference the secret in Secrets Manager
+    // We'll fetch it directly in the build script using AWS CLI
     const secretName = 'byteverse-ui/env-vars'
     const uiSecrets = secretsmanager.Secret.fromSecretNameV2(
       this,
@@ -36,66 +36,16 @@ export class UIPipelineStack extends cdk.Stack {
       secretName
     )
 
-    // Use a custom resource to get the full ARN with random suffix
-    // Note: We use the secret name (not ARN) in the API call, so we need permission for any ARN matching the name
-    const getSecretArn = new custom_resources.AwsCustomResource(this, 'GetSecretArn', {
-      onCreate: {
-        service: 'SecretsManager',
-        action: 'describeSecret',
-        parameters: {
-          SecretId: secretName,
-        },
-        physicalResourceId: custom_resources.PhysicalResourceId.fromResponse('ARN'),
-      },
-      policy: custom_resources.AwsCustomResourcePolicy.fromStatements([
-        new aws_iam.PolicyStatement({
-          actions: ['secretsmanager:DescribeSecret'],
-          // Use wildcard pattern since the ARN includes a random suffix
-          resources: [
-            `arn:aws:secretsmanager:${this.region}:${this.account}:secret:${secretName}-*`,
-          ],
-          effect: aws_iam.Effect.ALLOW,
-        }),
-      ]),
-    })
-
-    const secretFullArn = getSecretArn.getResponseField('ARN')
-
     // CodeBuild project for building the UI
     const buildProject = new codebuild.PipelineProject(this, 'UiBuildProject', {
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
         privileged: true,
       },
-      environmentVariables: {
-        // All environment variables are now stored in Secrets Manager
-        // The secret contains a JSON object with all VITE_* variables
-        // Format for JSON keys: arn:aws:secretsmanager:region:account:secret:name-6chars:jsonKey::
-        VITE_AWS_REGION: {
-          value: `${secretFullArn}:VITE_AWS_REGION::`,
-          type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
-        },
-        VITE_APPSYNC_ENDPOINT: {
-          value: `${secretFullArn}:VITE_APPSYNC_ENDPOINT::`,
-          type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
-        },
-        VITE_COGNITO_IDENTITY_POOL_ID: {
-          value: `${secretFullArn}:VITE_COGNITO_IDENTITY_POOL_ID::`,
-          type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
-        },
-        VITE_COGNITO_USER_POOL_ID: {
-          value: `${secretFullArn}:VITE_COGNITO_USER_POOL_ID::`,
-          type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
-        },
-        VITE_COGNITO_USER_POOL_WEB_CLIENT_ID: {
-          value: `${secretFullArn}:VITE_COGNITO_USER_POOL_WEB_CLIENT_ID::`,
-          type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
-        },
-        VITE_APPSYNC_API_KEY: {
-          value: `${secretFullArn}:VITE_APPSYNC_API_KEY::`,
-          type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
-        },
-      },
+      // Note: We're not using CodeBuild environment variables anymore
+      // Instead, we fetch the secret directly in pre_build phase using AWS CLI
+      // This avoids issues with CodeBuild's JSON key resolution
+      environmentVariables: {},
       buildSpec: codebuild.BuildSpec.fromObject({
         version: '0.2',
         phases: {
@@ -104,24 +54,30 @@ export class UIPipelineStack extends cdk.Stack {
               nodejs: 20
             },
             commands: [
-              'npm i --force'
+              'npm i --force',
+              'echo "Installing jq for JSON parsing..."',
+              'yum install -y jq || apt-get update && apt-get install -y jq || echo "jq installation failed, will try without it"'
             ]
           },
           pre_build: {
             commands: [
-              'echo "=== Creating .env file from CodeBuild environment variables ==="',
-              'echo "VITE_AWS_REGION=${VITE_AWS_REGION}" >> .env',
-              'echo "VITE_APPSYNC_ENDPOINT=${VITE_APPSYNC_ENDPOINT}" >> .env',
-              'echo "VITE_COGNITO_IDENTITY_POOL_ID=${VITE_COGNITO_IDENTITY_POOL_ID}" >> .env',
-              'echo "VITE_COGNITO_USER_POOL_ID=${VITE_COGNITO_USER_POOL_ID}" >> .env',
-              'echo "VITE_COGNITO_USER_POOL_WEB_CLIENT_ID=${VITE_COGNITO_USER_POOL_WEB_CLIENT_ID}" >> .env',
-              'echo "VITE_APPSYNC_API_KEY=${VITE_APPSYNC_API_KEY}" >> .env',
+              'echo "=== Fetching secrets from Secrets Manager ==="',
+              'SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id byteverse-ui/env-vars --region us-east-1 --query SecretString --output text)',
+              'echo "=== Creating .env file from Secrets Manager ==="',
+              'echo "VITE_AWS_REGION=$(echo $SECRET_JSON | jq -r .VITE_AWS_REGION)" >> .env',
+              'echo "VITE_APPSYNC_ENDPOINT=$(echo $SECRET_JSON | jq -r .VITE_APPSYNC_ENDPOINT)" >> .env',
+              'echo "VITE_COGNITO_IDENTITY_POOL_ID=$(echo $SECRET_JSON | jq -r .VITE_COGNITO_IDENTITY_POOL_ID)" >> .env',
+              'echo "VITE_COGNITO_USER_POOL_ID=$(echo $SECRET_JSON | jq -r .VITE_COGNITO_USER_POOL_ID)" >> .env',
+              'echo "VITE_COGNITO_USER_POOL_WEB_CLIENT_ID=$(echo $SECRET_JSON | jq -r .VITE_COGNITO_USER_POOL_WEB_CLIENT_ID)" >> .env',
+              'echo "VITE_APPSYNC_API_KEY=$(echo $SECRET_JSON | jq -r .VITE_APPSYNC_API_KEY)" >> .env',
               'echo "=== Verifying .env file contents ==="',
               'echo "Number of lines:"',
               'wc -l .env || echo ".env file not created"',
-              'echo "Checking value lengths (first 20 chars shown):"',
-              'grep "VITE_COGNITO_IDENTITY_POOL_ID" .env | cut -d= -f2 | head -c 20 && echo " (length: $(grep VITE_COGNITO_IDENTITY_POOL_ID .env | cut -d= -f2 | wc -c))" || echo "NOT_FOUND"',
-              'grep "VITE_AWS_REGION" .env | cut -d= -f2 && echo " (length: $(grep VITE_AWS_REGION .env | cut -d= -f2 | wc -c))" || echo "NOT_FOUND"'
+              'echo "Checking value lengths:"',
+              'grep "VITE_COGNITO_IDENTITY_POOL_ID" .env | cut -d= -f2 | wc -c',
+              'grep "VITE_AWS_REGION" .env | cut -d= -f2 | wc -c',
+              'echo "First 30 chars of Identity Pool ID:"',
+              'grep "VITE_COGNITO_IDENTITY_POOL_ID" .env | cut -d= -f2 | head -c 30'
             ]
           },
           build: {
@@ -213,6 +169,7 @@ export class UIPipelineStack extends cdk.Stack {
     })
 
     // Grant permissions to read secrets from Secrets Manager
+    // This allows the build script to fetch the secret using AWS CLI
     uiSecrets.grantRead(buildProject.role as aws_iam.Role)
 
     // Pipeline definition
