@@ -148,7 +148,10 @@ export class UIPipelineStack extends cdk.Stack {
 
     // Grant permissions to read secrets from Secrets Manager
     // This allows the build script to fetch values from the secret created by AppsyncStack
-    uiConfigSecret.grantRead(buildProject.role as aws_iam.Role)
+    cdkBuildProjectProd?.role?.addToPrincipalPolicy(new aws_iam.PolicyStatement({
+      actions: ['secretsmanager:GetSecretValue'],
+      resources: [uiConfigSecret.secretArn],
+    }))
 
     // Pipeline definition
     const pipeline = new codepipeline.Pipeline(this, 'UIPipeline', {
