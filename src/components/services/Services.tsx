@@ -1,9 +1,17 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Container, Row, Col, Card, Badge, ListGroup, Spinner, Alert } from 'react-bootstrap'
 import { useListAllServicesQuery } from '../../api/operations/ops'
-import graphqlClient, { getApiKey } from '../../api/clients/graphql-client'
 
 const Services: React.FC = () => {
+  const [graphqlClient, setGraphqlClient] = useState<any>(null)
+  
+  useEffect(() => {
+    const fetchGraphqlClient = async () => {
+      const graphqlClientModule = await import('../../api/clients/graphql-client.mjs')
+      setGraphqlClient(graphqlClientModule.default)
+    }
+    fetchGraphqlClient()
+  }, [])
   const { data, isLoading, isError, error } = useListAllServicesQuery(graphqlClient)
 
   return (

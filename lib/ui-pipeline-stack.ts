@@ -26,8 +26,8 @@ export class UIPipelineStack extends cdk.Stack {
     // CDK artifacts for each environment
     const cdkOutputProd = new codepipeline.Artifact()
 
-    // Note: No secrets needed for UI build - API key is injected server-side
-    // Cognito User Pool IDs are only needed for future authenticated operations
+    // Note: Configuration values are public and fetched from AppsyncStack CloudFormation exports
+    // No Secrets Manager needed since API key and Cognito config are exposed to client
 
     // CodeBuild project for building the UI
     const buildProject = new codebuild.PipelineProject(this, 'UiBuildProject', {
@@ -35,9 +35,6 @@ export class UIPipelineStack extends cdk.Stack {
         buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
         privileged: true,
       },
-      // Note: We're not using CodeBuild environment variables anymore
-      // Instead, we fetch the secret directly in pre_build phase using AWS CLI
-      // This avoids issues with CodeBuild's JSON key resolution
       environmentVariables: {},
       buildSpec: codebuild.BuildSpec.fromObject({
         version: '0.2',
@@ -47,16 +44,25 @@ export class UIPipelineStack extends cdk.Stack {
               nodejs: 20
             },
             commands: [
-              'npm i --force',
-              'echo "Installing jq for JSON parsing..."',
-              'yum install -y jq || apt-get update && apt-get install -y jq || echo "jq installation failed, will try without it"'
+              'npm i --force'
             ]
           },
           pre_build: {
             commands: [
-              'echo "=== No environment variables needed - API key is injected server-side ==="',
-              'echo "=== Creating empty .env file ==="',
-              'touch .env'
+              'echo "=== Fetching configuration from AppsyncStack CloudFormation exports ==="',
+              'API_KEY=$(aws cloudformation describe-stacks --stack-name AppsyncStack --query "Stacks[0].Outputs[?ExportName==\'AppsyncStack-ApiKeyValue\'].OutputValue" --output text)',
+              'USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name AppsyncStack --query "Stacks[0].Outputs[?ExportName==\'AppsyncStack-UserPoolId\'].OutputValue" --output text)',
+              'USER_POOL_CLIENT_ID=$(aws cloudformation describe-stacks --stack-name AppsyncStack --query "Stacks[0].Outputs[?ExportName==\'AppsyncStack-UserPoolClientId\'].OutputValue" --output text)',
+              'AWS_REGION=$(aws cloudformation describe-stacks --stack-name AppsyncStack --query "Stacks[0].Outputs[?ExportName==\'AppsyncStack-AWSRegion\'].OutputValue" --output text)',
+              'ENDPOINT=$(aws cloudformation describe-stacks --stack-name AppsyncStack --query "Stacks[0].Outputs[?ExportName==\'AppsyncStack-AppSyncEndpoint\'].OutputValue" --output text)',
+              'echo "=== Creating .env file from CloudFormation exports ==="',
+              'printf "VITE_APPSYNC_API_KEY=%s\\n" "$API_KEY" > .env',
+              'printf "VITE_COGNITO_USER_POOL_ID=%s\\n" "$USER_POOL_ID" >> .env',
+              'printf "VITE_COGNITO_USER_POOL_WEB_CLIENT_ID=%s\\n" "$USER_POOL_CLIENT_ID" >> .env',
+              'printf "VITE_AWS_REGION=%s\\n" "$AWS_REGION" >> .env',
+              'printf "VITE_APPSYNC_ENDPOINT=%s\\n" "$ENDPOINT" >> .env',
+              'echo "=== Verifying .env file ==="',
+              'cat .env | sed "s/=.*/=***/" || echo ".env file not created"'
             ]
           },
           build: {
@@ -131,13 +137,24 @@ export class UIPipelineStack extends cdk.Stack {
           })
         ]
       }))
-    })
+    });
 
     // Grant permissions to the build projects to access the artifact bucket
-    artifactBucket.grantReadWrite(buildProject)
-    artifactBucket.grantReadWrite(cdkBuildProjectProd)
+    buildProject?.role?.addToPrincipalPolicy(new aws_iam.PolicyStatement({
+      actions: ['s3:GetObject', 's3:PutObject'],
+      resources: [`${artifactBucket?.bucketArn}/*`],
+    }));
 
-    // No secrets needed - API key is injected server-side via CloudFront Function/Lambda@Edge
+    // Grant permissions to read CloudFormation stack outputs
+    // Configuration values are public and fetched from AppsyncStack exports
+    (buildProject.role as aws_iam.Role).addToPolicy(new aws_iam.PolicyStatement({
+      effect: aws_iam.Effect.ALLOW,
+      actions: [
+        'cloudformation:DescribeStacks',
+        'cloudformation:ListExports',
+      ],
+      resources: ['*'], // CloudFormation exports are account-level
+    }))
 
     // Pipeline definition
     const pipeline = new codepipeline.Pipeline(this, 'UIPipeline', {

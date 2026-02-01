@@ -1,45 +1,45 @@
 import { GraphQLClient, RequestDocument, Variables } from 'graphql-request'
 import { print } from 'graphql'
+import { fetchAuthSession } from 'aws-amplify/auth'
 
-// Configuration - endpoint has default but can be overridden via env vars for local development
-// No authentication needed - API key is injected server-side via CloudFront Function/Lambda@Edge
+// Configuration - endpoint and API key from environment
 const getAppSyncConfig = () => {
-  // Default endpoint - can be overridden via env vars for local development
   const endpoint = import.meta.env.VITE_APPSYNC_ENDPOINT || 'https://api.byteverseinnov.com/graphql'
+  const apiKey = import.meta.env.VITE_APPSYNC_API_KEY
 
-  // Debug logging in production to verify values are embedded
-  if (import.meta.env.PROD || !import.meta.env.DEV) {
-    console.log('[AppSync Config] Endpoint:', endpoint)
-  }
-
-  return { endpoint }
+  return { endpoint, apiKey }
 }
 
-// Simple GraphQL client that makes HTTP requests
-// API key is injected server-side, so no authentication needed in the client
-class SimpleGraphQLClient {
+// GraphQL client that handles both public (API key) and authenticated (Cognito) requests
+class AppSyncGraphQLClient {
   private endpoint: string
+  private apiKey: string | undefined
 
-  constructor(endpoint: string) {
+  constructor(endpoint: string, apiKey?: string) {
     this.endpoint = endpoint
+    this.apiKey = apiKey
   }
 
   async request<TData = any, TVariables = Variables>(
     documentOrOptions: RequestDocument | { document: RequestDocument; variables?: TVariables; requestHeaders?: HeadersInit },
-    variables?: TVariables
+    variables?: TVariables,
+    useAuth: boolean = false // Whether to use Cognito authentication
   ): Promise<TData> {
-    // Handle both call signatures:
-    // 1. request(document, variables) - separate parameters
-    // 2. request({ document, variables, requestHeaders }) - object parameter
+    // Handle both call signatures
     let document: RequestDocument
     let vars: TVariables | undefined
+    const requestHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
     
     if (typeof documentOrOptions === 'object' && documentOrOptions !== null && 'document' in documentOrOptions) {
-      // Object format: { document, variables, requestHeaders }
       document = documentOrOptions.document
       vars = documentOrOptions.variables as TVariables | undefined
+      if (documentOrOptions.requestHeaders) {
+        const headers = documentOrOptions.requestHeaders as Record<string, string>
+        Object.assign(requestHeaders, headers)
+      }
     } else {
-      // Separate parameters format: (document, variables)
       document = documentOrOptions as RequestDocument
       vars = variables
     }
@@ -49,21 +49,39 @@ class SimpleGraphQLClient {
     if (typeof document === 'string') {
       query = document
     } else {
-      // DocumentNode - serialize it back to a string using print()
       query = print(document)
     }
     
-    // Validate that we have a query
     if (!query || query.trim().length === 0) {
       throw new Error('GraphQL query cannot be empty')
     }
 
-    // Make the request - API key is injected server-side
+    // Add authentication headers
+    if (useAuth) {
+      // Use Cognito User Pool authentication
+      try {
+        const session = await fetchAuthSession()
+        if (session.tokens?.idToken) {
+          requestHeaders['Authorization'] = `Bearer ${session.tokens.idToken.toString()}`
+        } else {
+          throw new Error('Not authenticated. Please sign in.')
+        }
+      } catch (error) {
+        throw new Error(`Authentication failed: ${error instanceof Error ? error.message : String(error)}`)
+      }
+    } else {
+      // Use API key for public operations
+      if (this.apiKey) {
+        requestHeaders['x-api-key'] = this.apiKey
+      } else {
+        console.warn('API key not configured. Public requests may fail.')
+      }
+    }
+
+    // Make the request
     const response = await fetch(this.endpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: requestHeaders,
       body: JSON.stringify({
         query,
         variables: vars || {},
@@ -97,7 +115,7 @@ class SimpleGraphQLClient {
   }
 }
 
-const { endpoint } = getAppSyncConfig()
-const graphqlClient = new SimpleGraphQLClient(endpoint) as unknown as GraphQLClient
+const { endpoint, apiKey } = getAppSyncConfig()
+const graphqlClient = new AppSyncGraphQLClient(endpoint, apiKey) as unknown as GraphQLClient
 
 export default graphqlClient
