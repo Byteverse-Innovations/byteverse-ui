@@ -5,7 +5,6 @@ import * as codepipeline_actions from 'aws-cdk-lib/aws-codepipeline-actions'
 import * as codebuild from 'aws-cdk-lib/aws-codebuild'
 import * as s3 from 'aws-cdk-lib/aws-s3'
 import { aws_iam, custom_resources } from 'aws-cdk-lib'
-import { environments } from '../config/cdk-config'
 
 export class UIPipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -26,9 +25,6 @@ export class UIPipelineStack extends cdk.Stack {
     // CDK artifacts for each environment
     const cdkOutputProd = new codepipeline.Artifact()
 
-    // Note: Configuration values are public and fetched from AppsyncStack CloudFormation exports
-    // No Secrets Manager needed since API key and Cognito config are exposed to client
-
     // CodeBuild project for building the UI
     const buildProject = new codebuild.PipelineProject(this, 'UiBuildProject', {
       environment: {
@@ -47,27 +43,8 @@ export class UIPipelineStack extends cdk.Stack {
               'npm i --force'
             ]
           },
-          pre_build: {
-            commands: [
-              'echo "=== Fetching configuration from AppsyncStack CloudFormation exports ==="',
-              'API_KEY=$(aws cloudformation describe-stacks --stack-name AppsyncStack --query "Stacks[0].Outputs[?ExportName==\'AppsyncStack-ApiKeyValue\'].OutputValue" --output text)',
-              'USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name AppsyncStack --query "Stacks[0].Outputs[?ExportName==\'AppsyncStack-UserPoolId\'].OutputValue" --output text)',
-              'USER_POOL_CLIENT_ID=$(aws cloudformation describe-stacks --stack-name AppsyncStack --query "Stacks[0].Outputs[?ExportName==\'AppsyncStack-UserPoolClientId\'].OutputValue" --output text)',
-              'AWS_REGION=$(aws cloudformation describe-stacks --stack-name AppsyncStack --query "Stacks[0].Outputs[?ExportName==\'AppsyncStack-AWSRegion\'].OutputValue" --output text)',
-              'ENDPOINT=$(aws cloudformation describe-stacks --stack-name AppsyncStack --query "Stacks[0].Outputs[?ExportName==\'AppsyncStack-AppSyncEndpoint\'].OutputValue" --output text)',
-              'echo "=== Creating .env file from CloudFormation exports ==="',
-              'printf "VITE_APPSYNC_API_KEY=%s\\n" "$API_KEY" > .env',
-              'printf "VITE_COGNITO_USER_POOL_ID=%s\\n" "$USER_POOL_ID" >> .env',
-              'printf "VITE_COGNITO_USER_POOL_WEB_CLIENT_ID=%s\\n" "$USER_POOL_CLIENT_ID" >> .env',
-              'printf "VITE_AWS_REGION=%s\\n" "$AWS_REGION" >> .env',
-              'printf "VITE_APPSYNC_ENDPOINT=%s\\n" "$ENDPOINT" >> .env',
-              'echo "=== Verifying .env file ==="',
-              'cat .env | sed "s/=.*/=***/" || echo ".env file not created"'
-            ]
-          },
           build: {
             commands: [
-              'echo "=== Starting Build ==="',
               'npm run build'
             ]
           }
