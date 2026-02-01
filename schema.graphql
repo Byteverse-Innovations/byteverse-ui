@@ -1,6 +1,22 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type ContactFormResponse {
+  message: String!
+  success: Boolean!
+}
+
+type Mutation {
+  #  Public mutation - accessible via API Key (for contact form)
+  submitContactForm(input: ContactFormInput!): ContactFormResponse! @aws_api_key
+}
+
 type Query {
-  getIndividualItem(id: ID!): Service
-  listAllServices: [Service!]!
+  #  Public operations - accessible via API Key (exposed to client)
+  getIndividualItem(id: ID!): Service @aws_api_key
+  listAllServices: [Service!]! @aws_api_key
 }
 
 type Service {
@@ -17,4 +33,13 @@ type Service {
   showOnMainSite: Boolean
   targetClient: [String!]
   updatedAt: String
+}
+
+input ContactFormInput {
+  company: String
+  email: String!
+  message: String!
+  name: String!
+  phone: String
+  subject: String!
 }

@@ -1,6 +1,6 @@
 import { GraphQLClient } from 'graphql-request';
 import { RequestInit } from 'graphql-request/dist/types.dom';
-import { useQuery, UseQueryOptions } from '@tanstack/react-query';
+import { useMutation, useQuery, UseMutationOptions, UseQueryOptions } from '@tanstack/react-query';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -23,6 +23,31 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+};
+
+export type ContactFormInput = {
+  company?: InputMaybe<Scalars['String']['input']>;
+  email: Scalars['String']['input'];
+  message: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  phone?: InputMaybe<Scalars['String']['input']>;
+  subject: Scalars['String']['input'];
+};
+
+export type ContactFormResponse = {
+  __typename?: 'ContactFormResponse';
+  message: Scalars['String']['output'];
+  success: Scalars['Boolean']['output'];
+};
+
+export type Mutation = {
+  __typename?: 'Mutation';
+  submitContactForm: ContactFormResponse;
+};
+
+
+export type MutationSubmitContactFormArgs = {
+  input: ContactFormInput;
 };
 
 export type Query = {
@@ -53,6 +78,13 @@ export type Service = {
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
+export type SubmitContactFormMutationVariables = Exact<{
+  input: ContactFormInput;
+}>;
+
+
+export type SubmitContactFormMutation = { __typename?: 'Mutation', submitContactForm: { __typename?: 'ContactFormResponse', success: boolean, message: string } };
+
 export type GetIndividualItemQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
@@ -66,6 +98,32 @@ export type ListAllServicesQueryVariables = Exact<{ [key: string]: never; }>;
 export type ListAllServicesQuery = { __typename?: 'Query', listAllServices: Array<{ __typename?: 'Service', category?: string | null, createdAt?: string | null, description?: string | null, isActive?: boolean | null, id: string, name: string, price?: number | null, updatedAt?: string | null, estimatedDuration?: string | null, pricingModel?: string | null, servicePillar?: string | null, showOnMainSite?: boolean | null, targetClient?: Array<string> | null }> };
 
 
+
+export const SubmitContactFormDocument = `
+    mutation submitContactForm($input: ContactFormInput!) {
+  submitContactForm(input: $input) {
+    success
+    message
+  }
+}
+    `;
+
+export const useSubmitContactFormMutation = <
+      TError = unknown,
+      TContext = unknown
+    >(
+      client: GraphQLClient,
+      options?: UseMutationOptions<SubmitContactFormMutation, TError, SubmitContactFormMutationVariables, TContext>,
+      headers?: RequestInit['headers']
+    ) => {
+    
+    return useMutation<SubmitContactFormMutation, TError, SubmitContactFormMutationVariables, TContext>(
+      {
+    mutationKey: ['submitContactForm'],
+    mutationFn: (variables?: SubmitContactFormMutationVariables) => fetcher<SubmitContactFormMutation, SubmitContactFormMutationVariables>(client, SubmitContactFormDocument, variables, headers)(),
+    ...options
+  }
+    )};
 
 export const GetIndividualItemDocument = `
     query getIndividualItem($id: ID!) {

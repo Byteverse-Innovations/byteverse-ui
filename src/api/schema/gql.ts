@@ -14,10 +14,12 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
+    "\n  mutation submitContactForm($input: ContactFormInput!) {\n    submitContactForm(input: $input) {\n      success\n      message\n    }\n  }\n": typeof types.SubmitContactFormDocument,
     "\n  query getIndividualItem($id: ID!) {\n    getIndividualItem(id: $id) {\n      category\n      createdAt\n      description\n      isActive\n      id\n      name\n      price\n      updatedAt\n      estimatedDuration\n      pricingModel\n      servicePillar\n      showOnMainSite\n      targetClient\n    }\n  }\n  ": typeof types.GetIndividualItemDocument,
     "\n  query listAllServices {\n    listAllServices {\n      category\n      createdAt\n      description\n      isActive\n      id\n      name\n      price\n      updatedAt\n      estimatedDuration\n      pricingModel\n      servicePillar\n      showOnMainSite\n      targetClient\n    }\n  }\n": typeof types.ListAllServicesDocument,
 };
 const documents: Documents = {
+    "\n  mutation submitContactForm($input: ContactFormInput!) {\n    submitContactForm(input: $input) {\n      success\n      message\n    }\n  }\n": types.SubmitContactFormDocument,
     "\n  query getIndividualItem($id: ID!) {\n    getIndividualItem(id: $id) {\n      category\n      createdAt\n      description\n      isActive\n      id\n      name\n      price\n      updatedAt\n      estimatedDuration\n      pricingModel\n      servicePillar\n      showOnMainSite\n      targetClient\n    }\n  }\n  ": types.GetIndividualItemDocument,
     "\n  query listAllServices {\n    listAllServices {\n      category\n      createdAt\n      description\n      isActive\n      id\n      name\n      price\n      updatedAt\n      estimatedDuration\n      pricingModel\n      servicePillar\n      showOnMainSite\n      targetClient\n    }\n  }\n": types.ListAllServicesDocument,
 };
@@ -36,6 +38,10 @@ const documents: Documents = {
  */
 export function graphql(source: string): unknown;
 
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation submitContactForm($input: ContactFormInput!) {\n    submitContactForm(input: $input) {\n      success\n      message\n    }\n  }\n"): (typeof documents)["\n  mutation submitContactForm($input: ContactFormInput!) {\n    submitContactForm(input: $input) {\n      success\n      message\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

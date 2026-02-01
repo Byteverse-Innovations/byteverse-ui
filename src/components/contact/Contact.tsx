@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
-import { Container, Row, Col, Form, Button, Card, Alert } from 'react-bootstrap'
+import React, { useState, useEffect } from 'react'
+import { Container, Row, Col, Form, Card, Alert } from 'react-bootstrap'
+import { useSubmitContactFormMutation } from '../../api/operations/ops'
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,23 @@ const Contact: React.FC = () => {
     message: ''
   })
   const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [graphqlClient, setGraphqlClient] = useState<any>(null)
+  const [clientReady, setClientReady] = useState(false)
+  
+  useEffect(() => {
+    const fetchGraphqlClient = async () => {
+      const graphqlClientModule = await import('../../api/clients/graphql-client.mjs')
+      setGraphqlClient(graphqlClientModule.default)
+      setClientReady(true)
+    }
+    fetchGraphqlClient()
+  }, [])
+  
+  // Use a placeholder client for hook initialization (hooks must always be called)
+  const placeholderClient = graphqlClient || ({ request: async () => ({}) } as any)
+  const { mutateAsync } = useSubmitContactFormMutation(placeholderClient)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -18,21 +36,46 @@ const Contact: React.FC = () => {
       ...prev,
       [name]: value
     }))
+    // Clear error when user starts typing
+    if (error) setError(null)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Here you would typically send the form data to your backend
-    console.log('Form submitted:', formData)
-    setSubmitted(true)
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      company: '',
-      subject: '',
-      message: ''
-    })
+    
+    if (!clientReady || !graphqlClient) {
+      setError('GraphQL client not initialized. Please refresh the page.')
+      return
+    }
+    
+    setIsSubmitting(true)
+    setError(null)
+    setSubmitted(false)
+
+    try {
+      const result = await mutateAsync({
+        input: formData
+      })
+
+      if (result.submitContactForm?.success) {
+        setSubmitted(true)
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          company: '',
+          subject: '',
+          message: ''
+        })
+      } else {
+        setError('Failed to send message. Please try again.')
+      }
+    } catch (err) {
+      console.error('Error submitting contact form:', err)
+      setError(err instanceof Error ? err.message : 'Failed to send message. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const contactInfo = [
@@ -91,6 +134,12 @@ const Contact: React.FC = () => {
               {submitted && (
                 <Alert variant="success" className="mb-4">
                   Thank you for your message! We'll get back to you within 24 hours.
+                </Alert>
+              )}
+
+              {error && (
+                <Alert variant="danger" className="mb-4" dismissible onClose={() => setError(null)}>
+                  {error}
                 </Alert>
               )}
 
@@ -191,9 +240,13 @@ const Contact: React.FC = () => {
                   </Col>
                 </Row>
 
-                <Button variant="primary" type="submit" size="lg" className="w-100">
-                  Send Message
-                </Button>
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-lg w-100"
+                  disabled={isSubmitting || !clientReady}
+                >
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
+                </button>
               </Form>
             </Card.Body>
           </Card>
@@ -250,7 +303,7 @@ const Contact: React.FC = () => {
                 </div>
                 <h5 className='text-white fw-bold fs-4'>Live Chat</h5>
                 <p className="gray-2">Chat with us in real-time during business hours</p>
-                <Button variant="outline-primary">Start Chat</Button>
+                <button type="button" className="btn btn-outline-primary">Start Chat</button>
               </Col>
               <Col lg={4} className="text-center mb-4">
                 <div className="mb-3">
@@ -258,7 +311,7 @@ const Contact: React.FC = () => {
                 </div>
                 <h5 className='text-white fw-bold fs-4'>Schedule a Call</h5>
                 <p className="gray-2">Book a consultation call at your convenience</p>
-                <Button variant="outline-primary">Book Now</Button>
+                <button type="button" className="btn btn-outline-primary">Book Now</button>
               </Col>
               <Col lg={4} className="text-center mb-4">
                 <div className="mb-3">
@@ -266,7 +319,7 @@ const Contact: React.FC = () => {
                 </div>
                 <h5 className='text-white fw-bold fs-4'>Request Quote</h5>
                 <p className="gray-2">Get a detailed quote for your project</p>
-                <Button variant="outline-primary">Get Quote</Button>
+                <button type="button" className="btn btn-outline-primary">Get Quote</button>
               </Col>
             </Row>
           </div>

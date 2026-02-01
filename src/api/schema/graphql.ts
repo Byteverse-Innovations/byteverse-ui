@@ -16,6 +16,31 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type ContactFormInput = {
+  company?: InputMaybe<Scalars['String']['input']>;
+  email: Scalars['String']['input'];
+  message: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  phone?: InputMaybe<Scalars['String']['input']>;
+  subject: Scalars['String']['input'];
+};
+
+export type ContactFormResponse = {
+  __typename?: 'ContactFormResponse';
+  message: Scalars['String']['output'];
+  success: Scalars['Boolean']['output'];
+};
+
+export type Mutation = {
+  __typename?: 'Mutation';
+  submitContactForm: ContactFormResponse;
+};
+
+
+export type MutationSubmitContactFormArgs = {
+  input: ContactFormInput;
+};
+
 export type Query = {
   __typename?: 'Query';
   getIndividualItem?: Maybe<Service>;
@@ -44,6 +69,13 @@ export type Service = {
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
+export type SubmitContactFormMutationVariables = Exact<{
+  input: ContactFormInput;
+}>;
+
+
+export type SubmitContactFormMutation = { __typename?: 'Mutation', submitContactForm: { __typename?: 'ContactFormResponse', success: boolean, message: string } };
+
 export type GetIndividualItemQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
@@ -57,5 +89,6 @@ export type ListAllServicesQueryVariables = Exact<{ [key: string]: never; }>;
 export type ListAllServicesQuery = { __typename?: 'Query', listAllServices: Array<{ __typename?: 'Service', category?: string | null, createdAt?: string | null, description?: string | null, isActive?: boolean | null, id: string, name: string, price?: number | null, updatedAt?: string | null, estimatedDuration?: string | null, pricingModel?: string | null, servicePillar?: string | null, showOnMainSite?: boolean | null, targetClient?: Array<string> | null }> };
 
 
+export const SubmitContactFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"submitContactForm"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ContactFormInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"submitContactForm"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"message"}}]}}]}}]} as unknown as DocumentNode<SubmitContactFormMutation, SubmitContactFormMutationVariables>;
 export const GetIndividualItemDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getIndividualItem"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getIndividualItem"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"isActive"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"price"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"estimatedDuration"}},{"kind":"Field","name":{"kind":"Name","value":"pricingModel"}},{"kind":"Field","name":{"kind":"Name","value":"servicePillar"}},{"kind":"Field","name":{"kind":"Name","value":"showOnMainSite"}},{"kind":"Field","name":{"kind":"Name","value":"targetClient"}}]}}]}}]} as unknown as DocumentNode<GetIndividualItemQuery, GetIndividualItemQueryVariables>;
 export const ListAllServicesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"listAllServices"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"listAllServices"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"isActive"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"price"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"estimatedDuration"}},{"kind":"Field","name":{"kind":"Name","value":"pricingModel"}},{"kind":"Field","name":{"kind":"Name","value":"servicePillar"}},{"kind":"Field","name":{"kind":"Name","value":"showOnMainSite"}},{"kind":"Field","name":{"kind":"Name","value":"targetClient"}}]}}]}}]} as unknown as DocumentNode<ListAllServicesQuery, ListAllServicesQueryVariables>;
