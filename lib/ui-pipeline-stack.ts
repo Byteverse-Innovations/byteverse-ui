@@ -61,7 +61,7 @@ export class UIPipelineStack extends cdk.Stack {
           pre_build: {
             commands: [
               'echo "=== Fetching configuration from Secrets Manager ==="',
-              'SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id byteverse-ui/appsync-config --region us-east-1 --query SecretString --output text)',
+              'SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id byteverse-ui/env-vars --region us-east-1 --query SecretString --output text)',
               'echo "=== Creating .env file from Secrets Manager ==="',
               'printf "VITE_COGNITO_IDENTITY_POOL_ID=%s\\n" "$(echo $SECRET_JSON | jq -r .VITE_COGNITO_IDENTITY_POOL_ID)" > .env',
               'echo "=== Verifying .env file ==="',
