@@ -6,16 +6,19 @@ import { Sha256 } from '@aws-crypto/sha256-js'
 import type { AwsCredentialIdentity, Provider } from '@aws-sdk/types'
 import { print } from 'graphql'
 
-// Get configuration from environment variables
+// Configuration - endpoint and region have defaults but can be overridden via env vars for local development
+// Identity Pool ID comes from build-time environment (injected from AppsyncStack Secrets Manager)
 const getAppSyncConfig = () => {
+  // Default values - can be overridden via env vars for local development
   const region = import.meta.env.VITE_AWS_REGION || 'us-east-1'
   const endpoint = import.meta.env.VITE_APPSYNC_ENDPOINT || 'https://api.byteverseinnov.com/graphql'
+  // Identity Pool ID is injected at build time from AppsyncStack Secrets Manager
   const identityPoolId = import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID
 
   // Debug logging in production to verify values are embedded
   if (import.meta.env.PROD || !import.meta.env.DEV) {
-    console.log('[AppSync Config] Region:', region)
-    console.log('[AppSync Config] Endpoint:', endpoint)
+    console.log('[AppSync Config] Region:', region, '(hardcoded)')
+    console.log('[AppSync Config] Endpoint:', endpoint, '(hardcoded)')
     console.log('[AppSync Config] Identity Pool ID:', identityPoolId ? `${identityPoolId.substring(0, 20)}... (length: ${identityPoolId.length})` : 'NOT SET')
   }
 

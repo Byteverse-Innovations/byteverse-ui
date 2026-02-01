@@ -1,4 +1,55 @@
-# React + TypeScript + Vite
+# Byteverse UI
+
+React + TypeScript + Vite application for Byteverse Innovations.
+
+## Local Development Setup
+
+### Prerequisites
+- Node.js 20+
+- AWS CLI configured with appropriate credentials
+- Access to the `byteverse-ui/appsync-config` secret in AWS Secrets Manager
+
+### Environment Variables
+
+For local development, you need to set up environment variables. You have two options:
+
+#### Option 1: Use the setup script (Recommended)
+```bash
+./scripts/setup-local-env.sh
+```
+
+This script automatically fetches values from AWS Secrets Manager and creates a `.env` file.
+
+#### Option 2: Manual setup
+1. Get the secret value from AWS Secrets Manager:
+```bash
+aws secretsmanager get-secret-value --secret-id byteverse-ui/appsync-config --region us-east-1 --query SecretString --output text | jq
+```
+
+2. Copy `.env.example` to `.env`:
+```bash
+cp .env.example .env
+```
+
+3. Fill in the values in `.env`:
+   - `VITE_COGNITO_IDENTITY_POOL_ID` (required)
+   - `VITE_AWS_REGION` (optional, defaults to `us-east-1`)
+   - `VITE_APPSYNC_ENDPOINT` (optional, defaults to `https://api.byteverseinnov.com/graphql`)
+
+### Running the Application
+
+```bash
+npm install
+npm run dev
+```
+
+## Production Build
+
+Production builds automatically fetch configuration from AWS Secrets Manager during the CI/CD pipeline. No manual `.env` file is needed for production deployments.
+
+---
+
+## React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

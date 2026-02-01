@@ -27,13 +27,12 @@ export class UIPipelineStack extends cdk.Stack {
     // CDK artifacts for each environment
     const cdkOutputProd = new codepipeline.Artifact()
 
-    // Reference the secret in Secrets Manager
-    // We'll fetch it directly in the build script using AWS CLI
-    const secretName = 'byteverse-ui/env-vars'
-    const uiSecrets = secretsmanager.Secret.fromSecretNameV2(
+    // Reference the secret in Secrets Manager created by AppsyncStack
+    // The secret name is 'byteverse-ui/appsync-config'
+    const uiConfigSecret = secretsmanager.Secret.fromSecretNameV2(
       this,
-      'UISecrets',
-      secretName
+      'UIConfigSecret',
+      'byteverse-ui/env-vars'
     )
 
     // CodeBuild project for building the UI
@@ -61,15 +60,10 @@ export class UIPipelineStack extends cdk.Stack {
           },
           pre_build: {
             commands: [
-              'echo "=== Fetching secrets from Secrets Manager ==="',
-              'SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id byteverse-ui/env-vars --region us-east-1 --query SecretString --output text)',
+              'echo "=== Fetching configuration from Secrets Manager ==="',
+              'SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id byteverse-ui/appsync-config --region us-east-1 --query SecretString --output text)',
               'echo "=== Creating .env file from Secrets Manager ==="',
-              'printf "VITE_AWS_REGION=%s\\n" "$(echo $SECRET_JSON | jq -r .VITE_AWS_REGION)" > .env',
-              'printf "VITE_APPSYNC_ENDPOINT=%s\\n" "$(echo $SECRET_JSON | jq -r .VITE_APPSYNC_ENDPOINT)" >> .env',
-              'printf "VITE_COGNITO_IDENTITY_POOL_ID=%s\\n" "$(echo $SECRET_JSON | jq -r .VITE_COGNITO_IDENTITY_POOL_ID)" >> .env',
-              'printf "VITE_COGNITO_USER_POOL_ID=%s\\n" "$(echo $SECRET_JSON | jq -r .VITE_COGNITO_USER_POOL_ID)" >> .env',
-              'printf "VITE_COGNITO_USER_POOL_WEB_CLIENT_ID=%s\\n" "$(echo $SECRET_JSON | jq -r .VITE_COGNITO_USER_POOL_WEB_CLIENT_ID)" >> .env',
-              'printf "VITE_APPSYNC_API_KEY=%s\\n" "$(echo $SECRET_JSON | jq -r .VITE_APPSYNC_API_KEY)" >> .env',
+              'printf "VITE_COGNITO_IDENTITY_POOL_ID=%s\\n" "$(echo $SECRET_JSON | jq -r .VITE_COGNITO_IDENTITY_POOL_ID)" > .env',
               'echo "=== Verifying .env file ==="',
               'cat .env | sed "s/=.*/=***/" || echo ".env file not created"'
             ]
@@ -150,13 +144,11 @@ export class UIPipelineStack extends cdk.Stack {
 
     // Grant permissions to the build projects to access the artifact bucket
     artifactBucket.grantReadWrite(buildProject)
-    cdkPermissions.forEach(project => {
-      artifactBucket.grantReadWrite(project)
-    })
+    artifactBucket.grantReadWrite(cdkBuildProjectProd)
 
     // Grant permissions to read secrets from Secrets Manager
-    // This allows the build script to fetch the secret using AWS CLI
-    uiSecrets.grantRead(buildProject.role as aws_iam.Role)
+    // This allows the build script to fetch values from the secret created by AppsyncStack
+    uiConfigSecret.grantRead(buildProject.role as aws_iam.Role)
 
     // Pipeline definition
     const pipeline = new codepipeline.Pipeline(this, 'UIPipeline', {
