@@ -4,7 +4,6 @@ import * as codepipeline from 'aws-cdk-lib/aws-codepipeline'
 import * as codepipeline_actions from 'aws-cdk-lib/aws-codepipeline-actions'
 import * as codebuild from 'aws-cdk-lib/aws-codebuild'
 import * as s3 from 'aws-cdk-lib/aws-s3'
-import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager'
 import { aws_iam, custom_resources } from 'aws-cdk-lib'
 import { environments } from '../config/cdk-config'
 
@@ -27,13 +26,8 @@ export class UIPipelineStack extends cdk.Stack {
     // CDK artifacts for each environment
     const cdkOutputProd = new codepipeline.Artifact()
 
-    // Reference the secret in Secrets Manager created by AppsyncStack
-    // The secret name is 'byteverse-ui/appsync-config'
-    const uiConfigSecret = secretsmanager.Secret.fromSecretNameV2(
-      this,
-      'UIConfigSecret',
-      'byteverse-ui/env-vars'
-    )
+    // Note: No secrets needed for UI build - API key is injected server-side
+    // Cognito User Pool IDs are only needed for future authenticated operations
 
     // CodeBuild project for building the UI
     const buildProject = new codebuild.PipelineProject(this, 'UiBuildProject', {
@@ -60,12 +54,9 @@ export class UIPipelineStack extends cdk.Stack {
           },
           pre_build: {
             commands: [
-              'echo "=== Fetching configuration from Secrets Manager ==="',
-              'SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id byteverse-ui/env-vars --region us-east-1 --query SecretString --output text)',
-              'echo "=== Creating .env file from Secrets Manager ==="',
-              'printf "VITE_COGNITO_IDENTITY_POOL_ID=%s\\n" "$(echo $SECRET_JSON | jq -r .VITE_COGNITO_IDENTITY_POOL_ID)" > .env',
-              'echo "=== Verifying .env file ==="',
-              'cat .env | sed "s/=.*/=***/" || echo ".env file not created"'
+              'echo "=== No environment variables needed - API key is injected server-side ==="',
+              'echo "=== Creating empty .env file ==="',
+              'touch .env'
             ]
           },
           build: {
@@ -146,12 +137,7 @@ export class UIPipelineStack extends cdk.Stack {
     artifactBucket.grantReadWrite(buildProject)
     artifactBucket.grantReadWrite(cdkBuildProjectProd)
 
-    // Grant permissions to read secrets from Secrets Manager
-    // This allows the build script to fetch values from the secret created by AppsyncStack
-    buildProject?.role?.addToPrincipalPolicy(new aws_iam.PolicyStatement({
-      actions: ['secretsmanager:GetSecretValue'],
-      resources: [uiConfigSecret.secretArn],
-    }))
+    // No secrets needed - API key is injected server-side via CloudFront Function/Lambda@Edge
 
     // Pipeline definition
     const pipeline = new codepipeline.Pipeline(this, 'UIPipeline', {
