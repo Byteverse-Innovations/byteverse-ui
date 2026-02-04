@@ -87,17 +87,17 @@ const Contact: React.FC = () => {
     {
       icon: '📧',
       title: 'Email',
-      content: 'hello@byteverse.com'
+      content: 'reach@byteverseinnov.com'
     },
     {
       icon: '📞',
       title: 'Phone',
-      content: '+1 (305) 340-7952'
+      content: '+1 (305) 744-6928'
     },
     {
       icon: '🕒',
       title: 'Business Hours',
-      content: 'Monday - Friday: 9:00 AM - 6:00 PM PST'
+      content: 'Monday - Friday: 9:00 AM - 6:00 PM EST'
     }
   ]
 
