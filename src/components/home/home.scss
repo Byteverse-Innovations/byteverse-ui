@@ -1,3 +1,8 @@
+/* Single wrapper for all sections – same padding rhythm as Contact (no section bg; uses main page background) */
+.home-sections {
+  // Padding via utilities: py-5 px-3 px-md-4 px-lg-5
+}
+
 .img-hero {
   max-width: 500px;
   width: 100%;
@@ -23,9 +28,10 @@
   }
 }
 
-.card {
-  box-shadow: 0 4px 25px rgba(0, 123, 255, 0.2);
-  border-color: transparent !important;
+/* Service cards: visible border + shadow so they don’t blend into the background */
+.service-card {
+  border: 1px solid rgba(15, 158, 222, 0.35) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(15, 158, 222, 0.1);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
   overflow: hidden;
@@ -37,13 +43,14 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(9, 86, 190, 0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(9, 86, 190, 0.08), transparent);
     transition: left 0.5s;
   }
 
   &:hover {
     transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 15px 40px rgba(9, 86, 190, 0.4);
+    border-color: rgba(15, 158, 222, 0.6) !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 24px rgba(9, 86, 190, 0.2);
 
     &::before {
       left: 100%;
@@ -57,8 +64,11 @@
 }
 
 .card-icon {
+  color: var(--primary);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .why-byteverse {
@@ -85,18 +95,21 @@
       list-style-type: none;
       padding-bottom: 10px;
       transition: transform 0.3s ease, padding-left 0.3s ease;
+      display: flex;
+      align-items: center;
 
       &:hover {
         transform: translateX(10px);
         padding-left: 5px;
       }
 
-      &>i {
-        color: #0F9EDE;
+      .why-byteverse-check {
+        color: var(--primary);
+        flex-shrink: 0;
         transition: transform 0.3s ease;
       }
 
-      &:hover>i {
+      &:hover .why-byteverse-check {
         transform: scale(1.3) rotate(10deg);
       }
     }
@@ -224,144 +237,40 @@ h2.display-5 {
   }
 }
 
-// Section Separators - Code Scrolling Style
-.section-divider {
-  position: relative;
-  width: 100%;
-  height: 55px;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
-  background: #01113f;
-  border-top: 1px solid rgba(9, 86, 190, 0.15);
-  border-bottom: 1px solid rgba(9, 86, 190, 0.15);
+// Section break: minimal line + diamond, brand-colored
+.section-break {
   display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem 1rem;
+  margin: 0;
 
-  // Syntax highlighting glow effect
+  &::before,
   &::after {
     content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(9, 86, 190, 0.08) 20%,
-        rgba(15, 158, 222, 0.1) 50%,
-        rgba(9, 86, 190, 0.08) 80%,
-        transparent 100%);
-    animation: codeGlow 4s ease-in-out infinite;
-    pointer-events: none;
-  }
-}
-
-// Section 1 - React/JavaScript
-.section-divider-1 {
-  &::before {
-    content: '<div className="hero">🚀</div>  const build = () => { return awesome; }  function solve() { return solution; }  <Button>Click</Button>  let code = "magic";  export default App;  <Card>Content</Card>  const api = fetch();  className="bg-primary"  useEffect(() => {}, []);  useState();  <div className="hero">🚀</div>  const build = () => { return awesome; }';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    transform: translateY(-50%);
-    white-space: nowrap;
-    font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
-    font-size: 13px;
-    font-weight: 400;
-    color: rgba(15, 158, 222, 0.7);
-    animation: scrollCode 25s linear infinite;
-    text-shadow: 0 0 8px rgba(15, 158, 222, 0.4);
-    letter-spacing: 0.5px;
-  }
-}
-
-// Section 2 - CSS/HTML
-.section-divider-2 {
-  &::before {
-    content: '.container { display: flex; }  @media (max-width: 768px) { }  .hero-text { color: white; }  <header>Byteverse</header>  background: linear-gradient();  padding: 2rem;  margin: 0 auto;  border-radius: 8px;  box-shadow: 0 4px 6px;  transition: all 0.3s;  .container { display: flex; }  @media (max-width: 768px) { }';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    transform: translateY(-50%);
-    white-space: nowrap;
-    font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
-    font-size: 13px;
-    font-weight: 400;
-    color: rgba(15, 158, 222, 0.7);
-    animation: scrollCodeReverse 25s linear infinite;
-    text-shadow: 0 0 8px rgba(15, 158, 222, 0.4);
-    letter-spacing: 0.5px;
-  }
-}
-
-// Section 3 - Python/Backend
-.section-divider-3 {
-  &::before {
-    content: 'def build_solution(): return awesome  import requests  class Service: pass  @app.route("/api")  async def fetch_data(): pass  database.connect()  server.listen(3000)  json.dumps(data)  if __name__ == "__main__":  pip install package  def build_solution(): return awesome  import requests';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    transform: translateY(-50%);
-    white-space: nowrap;
-    font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
-    font-size: 13px;
-    font-weight: 400;
-    color: rgba(15, 158, 222, 0.7);
-    animation: scrollCode 25s linear infinite;
-    text-shadow: 0 0 8px rgba(15, 158, 222, 0.4);
-    letter-spacing: 0.5px;
-  }
-}
-
-// Section 4 - Mixed Languages
-.section-divider-4 {
-  &::before {
-    content: 'SELECT * FROM users;  docker run -p 3000:3000  git push origin main  npm install  yarn build  kubectl apply -f  terraform apply  aws s3 sync  curl -X POST  {"status": "success"}  SELECT * FROM users;  docker run -p 3000:3000';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    transform: translateY(-50%);
-    white-space: nowrap;
-    font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
-    font-size: 13px;
-    font-weight: 400;
-    color: rgba(15, 158, 222, 0.7);
-    animation: scrollCodeReverse 25s linear infinite;
-    text-shadow: 0 0 8px rgba(15, 158, 222, 0.4);
-    letter-spacing: 0.5px;
-  }
-}
-
-@keyframes scrollCode {
-  0% {
-    transform: translateY(-50%) translateX(0);
+    flex: 1;
+    max-width: 120px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(15, 158, 222, 0.5) 20%, rgba(9, 86, 190, 0.6) 50%, rgba(15, 158, 222, 0.5) 80%, transparent);
   }
 
-  100% {
-    transform: translateY(-50%) translateX(-50%);
-  }
-}
-
-@keyframes scrollCodeReverse {
-  0% {
-    transform: translateY(-50%) translateX(-50%);
+  &::after {
+    background: linear-gradient(270deg, transparent, rgba(15, 158, 222, 0.5) 20%, rgba(9, 86, 190, 0.6) 50%, rgba(15, 158, 222, 0.5) 80%, transparent);
   }
 
-  100% {
-    transform: translateY(-50%) translateX(0);
-  }
-}
-
-@keyframes codeGlow {
-
-  0%,
-  100% {
-    opacity: 0.4;
+  // Center diamond (rotated square)
+  .section-break__diamond {
+    width: 8px;
+    height: 8px;
+    background: linear-gradient(135deg, #0F9EDE, #0956be);
+    transform: rotate(45deg);
+    box-shadow: 0 0 12px rgba(15, 158, 222, 0.4);
+    flex-shrink: 0;
   }
 
-  50% {
-    opacity: 0.7;
+  &--flip .section-break__diamond {
+    transform: rotate(-45deg);
   }
 }
 

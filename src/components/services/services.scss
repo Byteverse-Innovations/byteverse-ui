@@ -1,0 +1,50 @@
+@import '../../styles/theme.scss';
+@import '../home/home.scss';
+
+// Services page: use home's section-break and service-card; override card header/list for data cards
+.services-hero {
+  .display-4 {
+    text-shadow: 0 2px 10px rgba(9, 86, 190, 0.3);
+  }
+}
+
+.service-card {
+  .card-header {
+    background: rgba(9, 86, 190, 0.25) !important;
+    border-bottom: 1px solid rgba(15, 158, 222, 0.35);
+    color: white;
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .card-body {
+    background: transparent !important;
+    color: white;
+  }
+
+  .list-group-item {
+    background: transparent !important;
+    color: #C2C0CD;
+    border: 0;
+  }
+
+  .list-group-item .bi {
+    color: var(--primary);
+  }
+
+  .btn-primary,
+  .btn-outline-primary {
+    border-color: var(--primary);
+  }
+}
+
+// Reuse home's .section-fade-in; stagger cards (home defines fadeInUp)
+.card-stagger {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out forwards;
+
+  @for $i from 1 through 12 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.08}s;
+    }
+  }
+}

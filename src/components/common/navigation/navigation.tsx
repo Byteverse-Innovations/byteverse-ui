@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Navbar, Nav, Container } from 'react-bootstrap'
 import { Link, useLocation } from 'react-router-dom'
-import logo from '../../../assets/bv-logo.svg'
+import logo from '../../../assets/icon-only-transparent-no-buffer.png'
 import './navigation.scss'
 
 const Navigation = () => {
@@ -14,29 +14,21 @@ const Navigation = () => {
 
   return (
     <Navbar
-      bg="deep-cove"
       expand="lg"
-      className="sticky-top"
+      className="sticky-top navbar-transparent"
       expanded={expanded}
       onToggle={() => setExpanded(!expanded)}
     >
       <Container fluid>
-        <Navbar.Brand as={Link} to="/" className="fw-bold text-primary">
-          <img src={logo} alt="Byteverse" />
+        <Navbar.Brand as={Link} to="/" className="text-primary">
+           <img src={logo} width={48} height={48} />
+           <span className='px-2 text-white logo-text'>Byteverse</span>
         </Navbar.Brand>
 
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
         <Navbar.Collapse id="basic-navbar-nav" className="flex-grow-0">
           <Nav className="me-auto">
-            <Nav.Link
-              as={Link}
-              to="/"
-              className={`mx-2 ${isActive('/') ? 'active fw-bold' : 'text-white'}`}
-              onClick={() => setExpanded(false)}
-            >
-              Home
-            </Nav.Link>
             <Nav.Link
               as={Link}
               to="/services"

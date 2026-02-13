@@ -1,42 +1,52 @@
+@import '../../../styles/theme.scss';
+
 .navbar-brand {
   img {
     width: auto;
-    height: 140px;
-    max-width: 560px;
+    height: 32px;
+    max-width: 180px;
     object-fit: contain;
     object-position: left;
     transition: height 0.3s ease;
-    
+
     @media (min-width: 576px) {
-      height: 160px;
-      max-width: 640px;
+      height: 36px;
+      max-width: 200px;
     }
-    
+
     @media (min-width: 768px) {
-      height: 180px;
-      max-width: 720px;
+      height: 40px;
+      max-width: 220px;
     }
-    
+
     @media (min-width: 992px) {
-      height: 200px;
-      max-width: 800px;
+      height: 44px;
+      max-width: 240px;
     }
-    
+
     @media (min-width: 1200px) {
-      height: 220px;
-      max-width: 880px;
+      height: 48px;
+      max-width: 260px;
     }
   }
 }
 
-// Reduce navbar padding
-.navbar {
-  padding-top: 0.5rem !important;
-  padding-bottom: 0.5rem !important;
-  
+// Transparent navbar – slim, white bottom border only
+.navbar-transparent.navbar {
+  background-color: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 1) !important;
+  padding-top: 0.35rem !important;
+  padding-bottom: 0.35rem !important;
+
   @media (min-width: 992px) {
-    padding-top: 0.75rem !important;
-    padding-bottom: 0.75rem !important;
+    padding-top: 0.4rem !important;
+    padding-bottom: 0.6rem !important;
+  }
+
+  .logo-text {
+    font-size: $font-size-base;
+    font-weight: $font-weight-normal;
   }
 }
 

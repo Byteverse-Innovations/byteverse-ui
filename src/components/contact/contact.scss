@@ -1,0 +1,127 @@
+@import '../../styles/theme.scss';
+@import '../home/home.scss';
+
+.contact-hero .display-4 {
+  text-shadow: 0 2px 10px rgba(9, 86, 190, 0.3);
+}
+
+// Form and sidebar cards – transparent, bordered (match service-card)
+.contact-form-card,
+.contact-info-card,
+.contact-services-card {
+  background: transparent !important;
+  border: 1px solid rgba(15, 158, 222, 0.35);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+
+  .card-header {
+    background: rgba(9, 86, 190, 0.25) !important;
+    border-bottom: 1px solid rgba(15, 158, 222, 0.35);
+    color: white;
+  }
+
+  .card-body {
+    background: transparent !important;
+    color: white;
+  }
+
+  .form-label,
+  .gray-2 {
+    color: #C2C0CD;
+  }
+
+  .form-control,
+  .form-select {
+    background: rgba(1, 17, 63, 0.6);
+    border-color: rgba(15, 158, 222, 0.35);
+    color: white;
+
+    &::placeholder {
+      color: rgba(194, 192, 205, 0.6);
+    }
+
+    &:focus {
+      background: rgba(1, 17, 63, 0.8);
+      border-color: var(--primary);
+      color: white;
+    }
+  }
+}
+
+.contact-info-card .card-body {
+  border-radius: var(--border-radius-lg);
+}
+
+.contact-info-icon {
+  color: var(--primary);
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.contact-methods-icon {
+  color: rgba(255, 255, 255, 0.9);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Contact methods row – coming soon; white outline buttons
+.contact-methods {
+  .card {
+    background: transparent !important;
+    border: 1px solid rgba(15, 158, 222, 0.35);
+    color: white;
+
+    .card-body p {
+      color: #C2C0CD;
+    }
+  }
+
+  .contact-methods-btn {
+    color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.5);
+
+    &:disabled {
+      color: rgba(255, 255, 255, 0.5);
+      border-color: rgba(255, 255, 255, 0.3);
+      background: transparent;
+      opacity: 1;
+    }
+  }
+}
+
+// FAQ accordion – dark theme (React Bootstrap Accordion)
+.contact-faq.accordion {
+  .accordion-item {
+    background: transparent;
+    border: 1px solid rgba(15, 158, 222, 0.35);
+    border-radius: var(--border-radius-md);
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+  }
+
+  .accordion-button {
+    background: rgba(9, 86, 190, 0.2) !important;
+    color: white !important;
+    border: none;
+    box-shadow: none;
+
+    &:not(.collapsed) {
+      background: rgba(9, 86, 190, 0.3) !important;
+      box-shadow: none;
+    }
+
+    &:focus {
+      box-shadow: none;
+      border-color: transparent;
+    }
+
+    &::after {
+      filter: brightness(0) invert(1);
+    }
+  }
+
+  .accordion-body {
+    background: rgba(1, 17, 63, 0.4);
+    color: #C2C0CD;
+  }
+}

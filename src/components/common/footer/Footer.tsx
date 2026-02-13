@@ -1,23 +1,25 @@
 import React from 'react'
 import { Container, Row, Col } from 'react-bootstrap'
-import logo from '../../../assets/bv-logo.svg'
+import { Link } from 'react-router-dom'
+import logo from '../../../assets/icon-only-transparent-no-buffer.png'
 import './footer.scss'
 
 const Footer: React.FC = () => {
   return (
-    <footer className="footer bg-deep-cove text-white py-3">
-      <Container fluid className="px-3 px-md-4 px-lg-5">
+    <footer className="footer text-white px-3 px-md-4 px-lg-5">
+      <Container fluid>
         <Row className="align-items-center">
-          {/* Logo and Company Info */}
+          {/* Logo – match navbar brand */}
           <Col lg={4} className="mb-2 mb-lg-0">
-            <div className="d-flex align-items-center mb-2">
-              <img src={logo} alt="Byteverse" className="footer-logo me-3" />
-            </div>
+            <Link to="/" className="d-flex align-items-center text-primary text-decoration-none footer-brand">
+              <img src={logo} alt="Byteverse" className="footer-logo me-2" />
+              <span className="logo-text text-white">Byteverse</span>
+            </Link>
           </Col>
 
           {/* Contact Info */}
           <Col lg={{ span: 3, offset: 5 }} className='text-md-end get-in-touch'>
-            <h6 className="text-primary mb-2 fw-semibold">Get In Touch</h6>
+            <h6 className="mb-2 fw-semibold">Get In Touch</h6>
             <div className="contact-info">
               <div className="mb-0">
                 <i className="bi bi-envelope me-2 text-primary"></i>
@@ -31,7 +33,7 @@ const Footer: React.FC = () => {
         <Row className="mt-3 pt-3">
           <Col md={6}>
             <p className="text-light mb-0 small">
-              © 2025 Byteverse. All rights reserved.
+              © 2026 Byteverse. All rights reserved.
             </p>
           </Col>
           <Col md={6} className="text-md-end">

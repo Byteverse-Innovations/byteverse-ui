@@ -21,19 +21,21 @@
     "diff:prod": "cdk diff --context env=prod"
   },
   "dependencies": {
-    "aws-amplify": "^6.0.0",
     "@react-spring/web": "^10.0.1",
     "@react-three/drei": "^10.7.4",
     "@react-three/fiber": "^9.3.0",
     "@react-three/postprocessing": "^3.0.4",
     "@tanstack/react-query": "^5.85.5",
     "@tanstack/react-query-devtools": "^5.85.5",
+    "aws-amplify": "^6.0.0",
     "aws-cdk": "^2.1019.1",
     "aws-cdk-lib": "^2.198.0",
     "bootstrap": "^5.3.7",
     "constructs": "^10.4.2",
     "graphql": "^16.11.0",
     "graphql-request": "^7.2.0",
+    "lucide-react": "^0.563.0",
+    "motion": "^12.34.0",
     "postprocessing": "^6.37.7",
     "react": "^19.1.0",
     "react-bootstrap": "^2.10.10",
@@ -61,6 +63,7 @@
     "ts-node": "^10.9.2",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vite-plugin-svgr": "^4.5.0"
   }
 }

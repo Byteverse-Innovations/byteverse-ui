@@ -1,18 +1,69 @@
-.footer {
-  margin: 0 36px 0;
-  padding: 0 16px 0;
+@import '../../../styles/theme.scss';
 
-  .get-in-touch {
-    a:hover {
-      text-decoration: underline !important;
+// Padding/margin match navbar: same vertical as .navbar-transparent, same horizontal as header
+.footer {
+  background-color: transparent !important;
+  border: none !important;
+  border-top: 1px solid rgba(255, 255, 255, 1) !important;
+  margin: 0;
+  padding-top: 0.35rem !important;
+  padding-bottom: 0.35rem !important;
+
+  @media (min-width: 992px) {
+    padding-top: 0.4rem !important;
+    padding-bottom: 0.6rem !important;
+  }
+
+  .footer-brand {
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.9;
     }
   }
 
   .footer-logo {
-    width: 300px;
-    height: 100px;
+    width: auto;
+    height: 32px;
+    max-width: 180px;
     object-fit: contain;
     object-position: left;
+    transition: height 0.3s ease;
+
+    @media (min-width: 576px) {
+      height: 36px;
+      max-width: 200px;
+    }
+
+    @media (min-width: 768px) {
+      height: 40px;
+      max-width: 220px;
+    }
+
+    @media (min-width: 992px) {
+      height: 44px;
+      max-width: 240px;
+    }
+
+    @media (min-width: 1200px) {
+      height: 48px;
+      max-width: 260px;
+    }
+  }
+
+  .logo-text {
+    font-size: $font-size-base;
+    font-weight: $font-weight-normal;
+  }
+
+  .get-in-touch {
+    h6 {
+      color: rgba(255, 255, 255, 0.95) !important;
+    }
+
+    a:hover {
+      text-decoration: underline !important;
+    }
   }
 
   .footer-link {
@@ -67,10 +118,6 @@
 
   // Responsive adjustments
   @media (max-width: 768px) {
-    .footer-logo {
-      height: 35px;
-    }
-
     .social-links {
       margin-top: 1rem;
       text-align: center !important;

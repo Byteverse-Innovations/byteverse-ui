@@ -1,17 +1,7 @@
-/* Import Bootstrap Icons */
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css");
-
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap');
-
-/* Import Theme */
 @import './styles/theme.scss';
 
-/* =============================================================================
-   CUSTOM STYLES
-   ============================================================================= */
-
-/* Custom styles */
+/* Layout */
 .App {
   min-height: 100vh;
   display: flex;
@@ -23,14 +13,10 @@
   overflow-x: hidden;
 }
 
-/* Animated background gradient */
 .App::before {
   content: '';
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: radial-gradient(circle at 20% 50%, rgba(9, 86, 190, 0.3) 0%, transparent 50%),
     radial-gradient(circle at 80% 80%, rgba(15, 158, 222, 0.2) 0%, transparent 50%);
   animation: gradientShift 15s ease infinite;
@@ -39,30 +25,14 @@
 }
 
 @keyframes gradientShift {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.8;
-    transform: scale(1.1);
-  }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.1); }
 }
 
-/* Ensure content is above background */
-.App>* {
-  position: relative;
-  z-index: 1;
-}
+.App > * { position: relative; z-index: 1; }
+main { flex: 1; }
 
-main {
-  flex: 1;
-}
-
-/* Navigation styles */
+/* Nav */
 .navbar-nav .nav-link {
   font-weight: var(--font-weight-medium);
   transition: all var(--transition-duration-normal) var(--transition-timing-ease);
@@ -70,6 +40,7 @@ main {
   position: relative;
 }
 
+/* Hover: underline (not used for active – see below) */
 .navbar-nav .nav-link::after {
   content: '';
   position: absolute;
@@ -82,22 +53,33 @@ main {
   transform: translateX(-50%);
 }
 
-.navbar-nav .nav-link:hover::after {
-  width: 80%;
-}
+.navbar-nav .nav-link:hover::after { width: 80%; }
 
 .navbar-nav .nav-link:hover {
   color: var(--primary) !important;
   transform: translateY(-2px);
 }
 
+/* Active: left accent bar (no underline, so it doesn’t clash with navbar bottom border) */
 .navbar-nav .nav-link.active {
   color: var(--primary) !important;
   font-weight: var(--font-weight-semibold);
 }
 
 .navbar-nav .nav-link.active::after {
-  width: 80%;
+  display: none;
+}
+
+.navbar-nav .nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 1.2em;
+  background: var(--primary);
+  border-radius: 2px;
 }
 
 .navbar-brand {
@@ -106,14 +88,19 @@ main {
   color: var(--primary) !important;
 }
 
-/* Card hover effects - enhanced */
+/* Cards */
+.card,
+.card .card-body {
+  background-color: transparent !important;
+}
+
 .card {
-  transition: transform var(--transition-duration-normal) var(--transition-timing-ease),
-    box-shadow var(--transition-duration-normal) var(--transition-timing-ease);
   border: var(--border-width) solid var(--border-color-light);
   border-radius: var(--border-radius-lg);
-  box-shadow: 0 4px 25px rgba(0, 123, 255, 0.2);
   border-color: transparent !important;
+  box-shadow: 0 4px 25px rgba(0, 123, 255, 0.2);
+  transition: transform var(--transition-duration-normal) var(--transition-timing-ease),
+    box-shadow var(--transition-duration-normal) var(--transition-timing-ease);
 }
 
 .card:hover {
@@ -121,21 +108,15 @@ main {
   box-shadow: 0 15px 40px rgba(9, 86, 190, 0.35) !important;
 }
 
-/* Glow effect on card titles */
-.card-title {
-  transition: color 0.3s ease;
-}
+.card-title { transition: color 0.3s ease; }
+.card:hover .card-title { color: var(--primary) !important; }
 
-.card:hover .card-title {
-  color: var(--primary) !important;
-}
-
-/* Button hover effects */
+/* Buttons */
 .btn {
-  transition: all var(--transition-duration-normal) var(--transition-timing-ease);
   font-weight: var(--font-weight-medium);
   position: relative;
   overflow: hidden;
+  transition: all var(--transition-duration-normal) var(--transition-timing-ease);
 }
 
 .btn::before {
@@ -151,30 +132,19 @@ main {
   transition: width 0.6s, height 0.6s;
 }
 
-.btn:hover::before {
-  width: 300px;
-  height: 300px;
-}
-
-.btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(9, 86, 190, 0.4);
-}
+.btn:hover::before { width: 300px; height: 300px; }
+.btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(9, 86, 190, 0.4); }
+.btn:active { transform: translateY(-1px); }
 
 .btn-primary {
-  background-color: var(--primary);
-  border-color: var(--primary);
   background: linear-gradient(135deg, var(--primary) 0%, #0F9EDE 100%);
+  border-color: var(--primary);
 }
 
 .btn-primary:hover {
   background: linear-gradient(135deg, #0F9EDE 0%, var(--primary) 100%);
   border-color: var(--primary-dark);
   box-shadow: 0 8px 25px rgba(9, 86, 190, 0.5);
-}
-
-.btn:active {
-  transform: translateY(-1px);
 }
 
 .btn-outline-primary {
@@ -187,77 +157,25 @@ main {
   border-color: var(--primary);
 }
 
-/* Progress bar animation */
-.progress-bar {
-  transition: width var(--transition-duration-slow) var(--transition-timing-ease-in-out);
+/* CTA secondary (outline-light) – visible on dark background, on-brand hover */
+.cta-btn-secondary {
+  color: rgba(255, 255, 255, 0.95);
+  border-color: rgba(255, 255, 255, 0.7);
 }
 
-/* Form focus effects */
-.form-control:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 0.2rem rgba(9, 86, 190, 0.25);
+.cta-btn-secondary:hover {
+  color: var(--primary);
+  background-color: #fff;
+  border-color: #fff;
 }
 
+/* Form & focus */
+.form-control:focus,
 .form-select:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 0.2rem rgba(9, 86, 190, 0.25);
 }
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Hide scrollbar but keep scrolling ability */
-::-webkit-scrollbar {
-  width: 0px;
-  background: transparent;
-}
-
-/* For Firefox */
-* {
-  scrollbar-width: none;
-}
-
-/* For older WebKit browsers */
-::-webkit-scrollbar {
-  display: none;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .display-4 {
-    font-size: var(--font-size-4xl);
-  }
-
-  .lead {
-    font-size: var(--font-size-lg);
-  }
-}
-
-/* Animation classes */
-.fade-in {
-  animation: fadeIn var(--transition-duration-normal) var(--transition-timing-ease);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Sticky footer effect */
-.sticky-top {
-  z-index: var(--z-index-sticky);
-}
-
-/* Enhanced focus states for accessibility */
 .btn:focus,
 .form-control:focus,
 .form-select:focus {
@@ -265,52 +183,46 @@ html {
   outline-offset: 2px;
 }
 
-/* Typography utilities */
-.text-primary {
-  color: var(--primary) !important;
+/* Global */
+html { scroll-behavior: smooth; }
+
+* { scrollbar-width: none; }
+::-webkit-scrollbar { display: none; }
+
+.progress-bar {
+  transition: width var(--transition-duration-slow) var(--transition-timing-ease-in-out);
 }
 
-.text-secondary {
-  color: var(--text-secondary) !important;
+.sticky-top { z-index: var(--z-index-sticky); }
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.text-muted {
-  color: var(--text-muted) !important;
+.fade-in {
+  animation: fadeIn var(--transition-duration-normal) var(--transition-timing-ease);
 }
 
-.bg-primary {
-  background-color: var(--primary) !important;
+/* Responsive */
+@media (max-width: 768px) {
+  .display-4 { font-size: var(--font-size-4xl); }
+  .lead { font-size: var(--font-size-lg); }
 }
 
-.bg-secondary {
-  background-color: var(--bg-secondary) !important;
-}
+/* Utilities */
+.text-primary { color: var(--primary) !important; }
+.text-secondary { color: var(--text-secondary) !important; }
+.text-muted { color: var(--text-muted) !important; }
 
-.bg-dark {
-  background-color: var(--bg-dark) !important;
-}
+.bg-primary { background-color: var(--primary) !important; }
+.bg-secondary { background-color: var(--bg-secondary) !important; }
+.bg-dark { background-color: var(--bg-dark) !important; }
+.bg-san-juan { background-color: var(--bg-san-juan) !important; }
+.bg-deep-cove { background-color: var(--bg-deep-cove) !important; }
 
-.bg-san-juan {
-  background-color: var(--bg-san-juan) !important;
-}
-
-.bg-deep-cove {
-  background-color: var(--bg-deep-cove) !important;
-}
-
-/* Custom utility classes */
-.shadow-byteverse {
-  box-shadow: var(--shadow-lg);
-}
-
-.border-byteverse {
-  border-color: var(--border-color) !important;
-}
-
-.rounded-byteverse {
-  border-radius: var(--border-radius-lg) !important;
-}
-
-.gray-2 {
-  color: #C2C0CD;
-}
+.shadow-byteverse { box-shadow: var(--shadow-lg); }
+.border-byteverse { border-color: var(--border-color) !important; }
+.rounded-byteverse { border-radius: var(--border-radius-lg) !important; }
+.gray-2 { color: #C2C0CD; }
