@@ -1,0 +1,43 @@
+# UI pipeline: run build and lint so you can track progress on every push/PR.
+# Optional: add a deploy job and AWS credentials (e.g. AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+# in repo secrets to deploy from GitHub.
+name: UI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+defaults:
+  run:
+    working-directory: .
+
+jobs:
+  pipeline:
+    name: Build & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Codegen
+        run: npm run codegen
+        env:
+          # Add APPSYNC_API_KEY or other codegen env in repo secrets if needed
+          APPSYNC_API_KEY: ${{ secrets.APPSYNC_API_KEY }}
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
