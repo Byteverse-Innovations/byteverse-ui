@@ -2,14 +2,10 @@
 # No build in GitHub — CodePipeline does the build/deploy. This workflow only polls
 # pipeline status so you can see deploy success/failure in the Actions tab.
 #
-# Auth (pick one):
-#   A) OIDC (recommended): Add secret AWS_ROLE_ARN (IAM role that trusts GitHub OIDC).
-#      In AWS: create an OIDC IdP for token.actions.githubusercontent.com, then a role
-#      with trust for your repo and codepipeline:ListPipelineExecutions, GetPipelineExecution.
-#   B) Long-lived keys: Add secrets AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION.
-#      If you get "The security token included in the request is invalid": create a new
-#      access key in IAM, copy both key and secret with no extra spaces/newlines into
-#      GitHub repo secrets; ensure the IAM user has codepipeline read permissions.
+# Auth (pick one; use a repo *variable* to choose, since secrets can't be used in 'if'):
+#   A) OIDC: Add variable AWS_AUTH_METHOD = oidc, and secrets AWS_ROLE_ARN, AWS_REGION.
+#   B) Access keys: Add secrets AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION.
+#      (If AWS_AUTH_METHOD is unset or not 'oidc', keys are used.)
 name: Track UI Deployment
 
 on:
@@ -29,14 +25,14 @@ jobs:
       contents: read
     steps:
       - name: Configure AWS credentials (OIDC)
-        if: ${{ secrets.AWS_ROLE_ARN != '' }}
+        if: ${{ vars.AWS_AUTH_METHOD == 'oidc' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Configure AWS credentials (access key)
-        if: ${{ secrets.AWS_ROLE_ARN == '' }}
+        if: ${{ vars.AWS_AUTH_METHOD != 'oidc' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
