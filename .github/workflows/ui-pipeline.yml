@@ -2,13 +2,20 @@
 # No build in GitHub — CodePipeline does the build/deploy. This workflow only polls
 # pipeline status so you can see deploy success/failure in the Actions tab.
 #
-# Required repo secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION (e.g. us-east-1)
+# Auth (pick one):
+#   A) OIDC (recommended): Add secret AWS_ROLE_ARN (IAM role that trusts GitHub OIDC).
+#      In AWS: create an OIDC IdP for token.actions.githubusercontent.com, then a role
+#      with trust for your repo and codepipeline:ListPipelineExecutions, GetPipelineExecution.
+#   B) Long-lived keys: Add secrets AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION.
+#      If you get "The security token included in the request is invalid": create a new
+#      access key in IAM, copy both key and secret with no extra spaces/newlines into
+#      GitHub repo secrets; ensure the IAM user has codepipeline read permissions.
 name: Track UI Deployment
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:  # "Run workflow" in Actions to check status anytime
+  workflow_dispatch:
 
 env:
   PIPELINE_NAME: Byteverse-UI-Pipeline
@@ -17,13 +24,28 @@ jobs:
   track-deployment:
     name: CodePipeline status
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials (OIDC)
+        if: ${{ secrets.AWS_ROLE_ARN != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Configure AWS credentials (access key)
+        if: ${{ secrets.AWS_ROLE_ARN == '' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Verify AWS access
+        run: |
+          aws sts get-caller-identity || (echo "::error::AWS credentials are invalid. Check secrets (no spaces/newlines) or use OIDC (AWS_ROLE_ARN)." && exit 1)
 
       - name: Wait for pipeline to start
         run: sleep 90
