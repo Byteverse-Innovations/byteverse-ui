@@ -1,43 +1,89 @@
-# UI pipeline: run build and lint so you can track progress on every push/PR.
-# Optional: add a deploy job and AWS credentials (e.g. AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
-# in repo secrets to deploy from GitHub.
-name: UI Pipeline
+# Track AWS CodePipeline (Byteverse-UI-Pipeline) and report status in GitHub.
+# No build in GitHub — CodePipeline does the build/deploy. This workflow only polls
+# pipeline status so you can see deploy success/failure in the Actions tab.
+#
+# Required repo secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION (e.g. us-east-1)
+name: Track UI Deployment
 
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:  # "Run workflow" in Actions to check status anytime
 
-defaults:
-  run:
-    working-directory: .
+env:
+  PIPELINE_NAME: Byteverse-UI-Pipeline
 
 jobs:
-  pipeline:
-    name: Build & Lint
+  track-deployment:
+    name: CodePipeline status
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Wait for pipeline to start
+        run: sleep 90
+        if: github.event_name == 'push'
 
-      - name: Codegen
-        run: npm run codegen
-        env:
-          # Add APPSYNC_API_KEY or other codegen env in repo secrets if needed
-          APPSYNC_API_KEY: ${{ secrets.APPSYNC_API_KEY }}
+      - name: Get latest pipeline execution
+        id: get-exec
+        run: |
+          EXEC=$(aws codepipeline list-pipeline-executions \
+            --pipeline-name "$PIPELINE_NAME" \
+            --max-items 1 \
+            --query 'pipelineExecutionSummaries[0].pipelineExecutionId' \
+            --output text 2>/dev/null || echo "")
+          if [ -z "$EXEC" ] || [ "$EXEC" = "None" ]; then
+            echo "No pipeline execution found. Pipeline may not have started yet."
+            echo "execution_id=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "execution_id=$EXEC" >> $GITHUB_OUTPUT
+          echo "Found execution $EXEC"
 
-      - name: Lint
-        run: npm run lint
+      - name: Poll pipeline until complete
+        id: poll
+        run: |
+          EXEC="${{ steps.get-exec.outputs.execution_id }}"
+          if [ -z "$EXEC" ]; then
+            echo "status=NoExecution" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          TIMEOUT=1800   # 30 min
+          ELAPSED=0
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            STATUS=$(aws codepipeline get-pipeline-execution \
+              --pipeline-name "$PIPELINE_NAME" \
+              --pipeline-execution-id "$EXEC" \
+              --query 'pipelineExecution.status' \
+              --output text)
+            echo "Status: $STATUS (${ELAPSED}s)"
+            if [ "$STATUS" = "Succeeded" ]; then
+              echo "status=Succeeded" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            if [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Stopped" ] || [ "$STATUS" = "Stopping" ]; then
+              echo "status=$STATUS" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            sleep 60
+            ELAPSED=$((ELAPSED + 60))
+          done
+          echo "status=Timeout" >> $GITHUB_OUTPUT
+          exit 0
 
-      - name: Build
-        run: npm run build
+      - name: Report result
+        run: |
+          STATUS="${{ steps.poll.outputs.status }}"
+          if [ "$STATUS" = "Succeeded" ]; then
+            echo "✅ CodePipeline deployment succeeded."
+          elif [ "$STATUS" = "NoExecution" ]; then
+            echo "⚠️ No pipeline execution found. Run the workflow again or check AWS."
+          else
+            echo "❌ CodePipeline finished with status: $STATUS"
+            exit 1
+          fi
