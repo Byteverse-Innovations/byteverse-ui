@@ -31,9 +31,138 @@ export type ContactFormResponse = {
   success: Scalars['Boolean']['output'];
 };
 
+export type ContactSubmission = {
+  __typename?: 'ContactSubmission';
+  company?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['String']['output']>;
+  email: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  message: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  phone?: Maybe<Scalars['String']['output']>;
+  subject: Scalars['String']['output'];
+};
+
+export type CreateInvoiceInput = {
+  clientEmail: Scalars['String']['input'];
+  clientName: Scalars['String']['input'];
+  dueDate?: InputMaybe<Scalars['String']['input']>;
+  lineItems: Array<LineItemInput>;
+  quoteId: Scalars['String']['input'];
+  total: Scalars['Float']['input'];
+};
+
+export type CreateQuoteInput = {
+  clientEmail: Scalars['String']['input'];
+  clientName: Scalars['String']['input'];
+  lineItems: Array<LineItemInput>;
+  status: QuoteStatus;
+  total: Scalars['Float']['input'];
+};
+
+export type CreateServiceInput = {
+  category?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  estimatedDuration?: InputMaybe<Scalars['String']['input']>;
+  isActive?: InputMaybe<Scalars['Boolean']['input']>;
+  name: Scalars['String']['input'];
+  price?: InputMaybe<Scalars['Float']['input']>;
+  pricingModel?: InputMaybe<Scalars['String']['input']>;
+  servicePillar?: InputMaybe<Scalars['String']['input']>;
+  showOnMainSite?: InputMaybe<Scalars['Boolean']['input']>;
+  targetClient?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type Invoice = {
+  __typename?: 'Invoice';
+  clientEmail: Scalars['String']['output'];
+  clientName: Scalars['String']['output'];
+  createdAt?: Maybe<Scalars['String']['output']>;
+  dueDate?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  lineItems: Array<LineItem>;
+  paidAt?: Maybe<Scalars['String']['output']>;
+  quoteId: Scalars['String']['output'];
+  status: InvoiceStatus;
+  total: Scalars['Float']['output'];
+  updatedAt?: Maybe<Scalars['String']['output']>;
+};
+
+export enum InvoiceStatus {
+  Overdue = 'OVERDUE',
+  Paid = 'PAID',
+  Pending = 'PENDING'
+}
+
+export type LineItem = {
+  __typename?: 'LineItem';
+  amount: Scalars['Float']['output'];
+  description: Scalars['String']['output'];
+  quantity: Scalars['Float']['output'];
+  unitPrice: Scalars['Float']['output'];
+};
+
+export type LineItemInput = {
+  amount: Scalars['Float']['input'];
+  description: Scalars['String']['input'];
+  quantity: Scalars['Float']['input'];
+  unitPrice: Scalars['Float']['input'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
+  acceptQuote?: Maybe<Quote>;
+  convertQuoteToInvoice?: Maybe<Invoice>;
+  createQuote?: Maybe<Quote>;
+  createService?: Maybe<Service>;
+  deleteQuote?: Maybe<Scalars['Boolean']['output']>;
+  deleteService?: Maybe<Scalars['Boolean']['output']>;
+  markInvoicePaid?: Maybe<Invoice>;
+  persistContactSubmission: ContactSubmission;
   submitContactForm: ContactFormResponse;
+  updateQuote?: Maybe<Quote>;
+  updateService?: Maybe<Service>;
+};
+
+
+export type MutationAcceptQuoteArgs = {
+  id: Scalars['ID']['input'];
+  token: Scalars['String']['input'];
+};
+
+
+export type MutationConvertQuoteToInvoiceArgs = {
+  quoteId: Scalars['ID']['input'];
+};
+
+
+export type MutationCreateQuoteArgs = {
+  input: CreateQuoteInput;
+};
+
+
+export type MutationCreateServiceArgs = {
+  input: CreateServiceInput;
+};
+
+
+export type MutationDeleteQuoteArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteServiceArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationMarkInvoicePaidArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationPersistContactSubmissionArgs = {
+  input: ContactFormInput;
 };
 
 
@@ -41,16 +170,70 @@ export type MutationSubmitContactFormArgs = {
   input: ContactFormInput;
 };
 
+
+export type MutationUpdateQuoteArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateQuoteInput;
+};
+
+
+export type MutationUpdateServiceArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateServiceInput;
+};
+
 export type Query = {
   __typename?: 'Query';
   getIndividualItem?: Maybe<Service>;
+  getInvoice?: Maybe<Invoice>;
+  getQuote?: Maybe<Quote>;
+  getQuoteByToken?: Maybe<Quote>;
   listAllServices: Array<Service>;
+  listContactSubmissions: Array<ContactSubmission>;
+  listInvoices: Array<Invoice>;
+  listQuotes: Array<Quote>;
 };
 
 
 export type QueryGetIndividualItemArgs = {
   id: Scalars['ID']['input'];
 };
+
+
+export type QueryGetInvoiceArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryGetQuoteArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryGetQuoteByTokenArgs = {
+  token: Scalars['String']['input'];
+};
+
+export type Quote = {
+  __typename?: 'Quote';
+  clientEmail: Scalars['String']['output'];
+  clientName: Scalars['String']['output'];
+  createdAt?: Maybe<Scalars['String']['output']>;
+  createdBy?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  lineItems: Array<LineItem>;
+  status: QuoteStatus;
+  token?: Maybe<Scalars['String']['output']>;
+  total: Scalars['Float']['output'];
+  updatedAt?: Maybe<Scalars['String']['output']>;
+};
+
+export enum QuoteStatus {
+  Accepted = 'ACCEPTED',
+  Declined = 'DECLINED',
+  Draft = 'DRAFT',
+  Sent = 'SENT'
+}
 
 export type Service = {
   __typename?: 'Service';
@@ -67,6 +250,32 @@ export type Service = {
   showOnMainSite?: Maybe<Scalars['Boolean']['output']>;
   targetClient?: Maybe<Array<Scalars['String']['output']>>;
   updatedAt?: Maybe<Scalars['String']['output']>;
+};
+
+export type UpdateInvoiceInput = {
+  paidAt?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<InvoiceStatus>;
+};
+
+export type UpdateQuoteInput = {
+  clientEmail?: InputMaybe<Scalars['String']['input']>;
+  clientName?: InputMaybe<Scalars['String']['input']>;
+  lineItems?: InputMaybe<Array<LineItemInput>>;
+  status?: InputMaybe<QuoteStatus>;
+  total?: InputMaybe<Scalars['Float']['input']>;
+};
+
+export type UpdateServiceInput = {
+  category?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  estimatedDuration?: InputMaybe<Scalars['String']['input']>;
+  isActive?: InputMaybe<Scalars['Boolean']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  price?: InputMaybe<Scalars['Float']['input']>;
+  pricingModel?: InputMaybe<Scalars['String']['input']>;
+  servicePillar?: InputMaybe<Scalars['String']['input']>;
+  showOnMainSite?: InputMaybe<Scalars['Boolean']['input']>;
+  targetClient?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type SubmitContactFormMutationVariables = Exact<{

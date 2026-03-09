@@ -1,0 +1,11 @@
+@import '../../styles/theme.scss';
+
+.quote-portal-card {
+  background: rgba(9, 86, 190, 0.15);
+  border: 1px solid rgba(15, 158, 222, 0.35);
+  color: var(--mischka, #dcdee4);
+}
+
+.min-vh-50 {
+  min-height: 50vh;
+}

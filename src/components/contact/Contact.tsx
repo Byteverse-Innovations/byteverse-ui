@@ -61,6 +61,7 @@ const Contact: React.FC = () => {
 
       if (result.submitContactForm?.success) {
         setSubmitted(true)
+        const submittedData = { ...formData }
         setFormData({
           name: '',
           email: '',
@@ -69,6 +70,17 @@ const Contact: React.FC = () => {
           subject: '',
           message: ''
         })
+        // Persist to admin list (fire-and-forget)
+        try {
+          await graphqlClient.request(
+            `mutation persistContactSubmission($input: ContactFormInput!) {
+              persistContactSubmission(input: $input) { id }
+            }`,
+            { input: submittedData }
+          )
+        } catch (_) {
+          // Non-blocking; submission already succeeded
+        }
       } else {
         setError('Failed to send message. Please try again.')
       }

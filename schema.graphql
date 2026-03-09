@@ -1,45 +1,180 @@
-schema {
-  query: Query
-  mutation: Mutation
-}
-
-type ContactFormResponse {
-  message: String!
-  success: Boolean!
-}
-
-type Mutation {
-  #  Public mutation - accessible via API Key (for contact form)
-  submitContactForm(input: ContactFormInput!): ContactFormResponse! @aws_api_key
-}
-
-type Query {
-  #  Public operations - accessible via API Key (exposed to client)
-  getIndividualItem(id: ID!): Service @aws_api_key
-  listAllServices: [Service!]! @aws_api_key
-}
-
 type Service {
-  category: String
-  createdAt: String
-  description: String
-  estimatedDuration: String
   id: ID!
-  isActive: Boolean
   name: String!
+  description: String
   price: Float
-  pricingModel: String
+  category: String
   servicePillar: String
-  showOnMainSite: Boolean
+  pricingModel: String
   targetClient: [String!]
+  estimatedDuration: String
+  showOnMainSite: Boolean
+  isActive: Boolean
+  createdAt: String
   updatedAt: String
 }
 
-input ContactFormInput {
-  company: String
-  email: String!
-  message: String!
+type LineItem {
+  description: String!
+  quantity: Float!
+  unitPrice: Float!
+  amount: Float!
+}
+
+type Quote {
+  id: ID!
+  clientName: String!
+  clientEmail: String!
+  status: QuoteStatus!
+  lineItems: [LineItem!]!
+  total: Float!
+  token: String
+  createdAt: String
+  updatedAt: String
+  createdBy: String
+}
+
+type Invoice {
+  id: ID!
+  quoteId: String!
+  clientName: String!
+  clientEmail: String!
+  status: InvoiceStatus!
+  lineItems: [LineItem!]!
+  total: Float!
+  dueDate: String
+  paidAt: String
+  createdAt: String
+  updatedAt: String
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  DECLINED
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+type ContactSubmission {
+  id: ID!
   name: String!
+  email: String!
   phone: String
+  company: String
   subject: String!
+  message: String!
+  createdAt: String
+}
+
+type Query {
+  getIndividualItem(id: ID!): Service @aws_api_key
+  listAllServices: [Service!]! @aws_api_key
+  getQuoteByToken(token: String!): Quote @aws_api_key
+  listQuotes: [Quote!]! @aws_cognito_user_pools
+  getQuote(id: ID!): Quote @aws_cognito_user_pools
+  listInvoices: [Invoice!]! @aws_cognito_user_pools
+  getInvoice(id: ID!): Invoice @aws_cognito_user_pools
+  listContactSubmissions: [ContactSubmission!]! @aws_cognito_user_pools
+}
+
+input ContactFormInput {
+  name: String!
+  email: String!
+  phone: String
+  company: String
+  subject: String!
+  message: String!
+}
+
+type ContactFormResponse {
+  success: Boolean!
+  message: String!
+}
+
+input LineItemInput {
+  description: String!
+  quantity: Float!
+  unitPrice: Float!
+  amount: Float!
+}
+
+input CreateQuoteInput {
+  clientName: String!
+  clientEmail: String!
+  status: QuoteStatus!
+  lineItems: [LineItemInput!]!
+  total: Float!
+}
+
+input UpdateQuoteInput {
+  clientName: String
+  clientEmail: String
+  status: QuoteStatus
+  lineItems: [LineItemInput!]
+  total: Float
+}
+
+input CreateInvoiceInput {
+  quoteId: String!
+  clientName: String!
+  clientEmail: String!
+  lineItems: [LineItemInput!]!
+  total: Float!
+  dueDate: String
+}
+
+input UpdateInvoiceInput {
+  status: InvoiceStatus
+  paidAt: String
+}
+
+type Mutation {
+  submitContactForm(input: ContactFormInput!): ContactFormResponse! @aws_api_key
+  persistContactSubmission(input: ContactFormInput!): ContactSubmission! @aws_api_key
+  acceptQuote(id: ID!, token: String!): Quote @aws_api_key
+  createQuote(input: CreateQuoteInput!): Quote @aws_cognito_user_pools
+  updateQuote(id: ID!, input: UpdateQuoteInput!): Quote @aws_cognito_user_pools
+  deleteQuote(id: ID!): Boolean @aws_cognito_user_pools
+  convertQuoteToInvoice(quoteId: ID!): Invoice @aws_cognito_user_pools
+  markInvoicePaid(id: ID!): Invoice @aws_cognito_user_pools
+  createService(input: CreateServiceInput!): Service @aws_cognito_user_pools
+  updateService(id: ID!, input: UpdateServiceInput!): Service @aws_cognito_user_pools
+  deleteService(id: ID!): Boolean @aws_cognito_user_pools
+}
+
+input CreateServiceInput {
+  name: String!
+  description: String
+  price: Float
+  category: String
+  servicePillar: String
+  pricingModel: String
+  targetClient: [String!]
+  estimatedDuration: String
+  showOnMainSite: Boolean
+  isActive: Boolean
+}
+
+input UpdateServiceInput {
+  name: String
+  description: String
+  price: Float
+  category: String
+  servicePillar: String
+  pricingModel: String
+  targetClient: [String!]
+  estimatedDuration: String
+  showOnMainSite: Boolean
+  isActive: Boolean
+}
+
+schema {
+  query: Query
+  mutation: Mutation
 }

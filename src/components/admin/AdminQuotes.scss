@@ -1,0 +1,21 @@
+@import '../../styles/theme.scss';
+
+.admin-table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--mischka, #dcdee4);
+  --bs-table-border-color: rgba(15, 158, 222, 0.25);
+}
+
+.admin-modal {
+  .modal-content {
+    background: var(--deep-cove, #01113f);
+    color: var(--mischka, #dcdee4);
+    border: 1px solid rgba(15, 158, 222, 0.35);
+  }
+  .modal-header {
+    border-color: rgba(15, 158, 222, 0.25);
+  }
+  .btn-close {
+    filter: invert(1);
+  }
+}

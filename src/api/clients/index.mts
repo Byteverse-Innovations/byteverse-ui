@@ -1,5 +1,5 @@
 // GraphQL Client
-export { default as graphqlClient } from './graphql-client.mjs'
+export { default as graphqlClient, requestWithAuth } from './graphql-client.mts'
 
 // React Query Client
 export { queryClient } from './query-client.js'
