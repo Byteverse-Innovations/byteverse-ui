@@ -1,6 +1,10 @@
 @import '../../../styles/theme.scss';
 
 .navbar-brand {
+  font-family: var(--font-family-secondary);
+  font-weight: var(--font-weight-bold);
+  color: var(--primary) !important;
+
   img {
     width: auto;
     height: 32px;
@@ -31,7 +35,7 @@
   }
 }
 
-// Transparent navbar – slim, white bottom border only
+// Transparent navbar - slim, white bottom border only
 .navbar-transparent.navbar {
   background-color: transparent !important;
   border: none !important;
@@ -50,6 +54,50 @@
   }
 }
 
-[aria-controls=basic-navbar-nav] {
+.navbar.sticky-top {
+  z-index: var(--z-index-sticky);
+}
+
+.navbar-nav .nav-link {
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-duration-normal) var(--transition-timing-ease);
+  color: var(--primary);
+  position: relative;
+}
+
+.navbar-nav .nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--primary);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.navbar-nav .nav-link.active {
+  color: var(--primary) !important;
+  font-weight: var(--font-weight-semibold);
+}
+
+.navbar-nav .nav-link.active::after {
+  display: none;
+}
+
+.navbar-nav .nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 1.2em;
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+[aria-controls='basic-navbar-nav'] {
   background-color: gray !important;
 }

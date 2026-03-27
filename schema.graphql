@@ -81,6 +81,9 @@ type Query {
   listInvoices: [Invoice!]! @aws_cognito_user_pools
   getInvoice(id: ID!): Invoice @aws_cognito_user_pools
   listContactSubmissions: [ContactSubmission!]! @aws_cognito_user_pools
+
+  notionIntegrationStatus: NotionIntegrationStatus! @aws_cognito_user_pools
+  notionSyncJob(id: ID!): NotionSyncJob @aws_cognito_user_pools
 }
 
 input ContactFormInput {
@@ -95,6 +98,28 @@ input ContactFormInput {
 type ContactFormResponse {
   success: Boolean!
   message: String!
+}
+
+type NotionOAuthUrl @aws_cognito_user_pools {
+  url: String!
+  state: String!
+}
+
+type NotionIntegrationStatus @aws_cognito_user_pools {
+  connected: Boolean!
+  workspaceName: String
+  usesOAuth: Boolean!
+}
+
+type NotionSyncJob @aws_cognito_user_pools {
+  jobId: ID!
+  tenantId: ID!
+  type: String!
+  status: String!
+  serviceId: ID
+  createdAt: String
+  updatedAt: String
+  errorMessage: String
 }
 
 input LineItemInput {
@@ -146,6 +171,11 @@ type Mutation {
   createService(input: CreateServiceInput!): Service @aws_cognito_user_pools
   updateService(id: ID!, input: UpdateServiceInput!): Service @aws_cognito_user_pools
   deleteService(id: ID!): Boolean @aws_cognito_user_pools
+
+  notionOAuthUrl: NotionOAuthUrl! @aws_cognito_user_pools
+  completeNotionOAuth(input: CompleteNotionOAuthInput!): NotionIntegrationStatus! @aws_cognito_user_pools
+  queueSyncServicesFromNotion: NotionSyncJob! @aws_cognito_user_pools
+  queuePushServiceToNotion(serviceId: ID!): NotionSyncJob! @aws_cognito_user_pools
 }
 
 input CreateServiceInput {
@@ -172,6 +202,11 @@ input UpdateServiceInput {
   estimatedDuration: String
   showOnMainSite: Boolean
   isActive: Boolean
+}
+
+input CompleteNotionOAuthInput {
+  code: String!
+  state: String!
 }
 
 schema {

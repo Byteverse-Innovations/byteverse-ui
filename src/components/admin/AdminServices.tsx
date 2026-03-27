@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Table, Button, Card, Modal, Form, Alert } from 'react-bootstrap'
+import React, { useEffect, useState } from 'react'
+import { Table, Button, Card, Modal, Form, Alert, Badge } from 'react-bootstrap'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { graphqlClient } from '../../api/clients'
 import { useListAllServicesQuery } from '../../api/operations/ops'
@@ -12,8 +12,58 @@ export default function AdminServices() {
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Service | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [trackJobId, setTrackJobId] = useState<string | null>(null)
 
   const { data: services = [], isLoading } = useListAllServicesQuery(graphqlClient)
+
+  const { data: notionStatus } = useQuery({
+    queryKey: ['notionIntegrationStatus'],
+    queryFn: () => adminApi.notionIntegrationStatus(),
+  })
+
+  const { data: trackedJob } = useQuery({
+    queryKey: ['notionSyncJob', trackJobId],
+    queryFn: () => adminApi.notionSyncJob(trackJobId!),
+    enabled: !!trackJobId,
+    refetchInterval: (query) => {
+      const st = query.state.data?.status
+      return st === 'QUEUED' || st === 'RUNNING' ? 2000 : false
+    },
+  })
+
+  useEffect(() => {
+    if (trackedJob?.status === 'SUCCEEDED' || trackedJob?.status === 'FAILED') {
+      void queryClient.invalidateQueries({ queryKey: ['listAllServices'] })
+      void queryClient.invalidateQueries({ queryKey: ['notionIntegrationStatus'] })
+    }
+  }, [trackedJob?.status, queryClient])
+
+  const connectNotionMut = useMutation({
+    mutationFn: adminApi.notionOAuthUrl,
+    onSuccess: ({ url, state }) => {
+      sessionStorage.setItem('notion_oauth_state', state)
+      window.location.href = url
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : String(err)),
+  })
+
+  const syncFromNotionMut = useMutation({
+    mutationFn: adminApi.queueSyncServicesFromNotion,
+    onSuccess: (job) => {
+      setTrackJobId(job.jobId)
+      setError(null)
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : String(err)),
+  })
+
+  const pushToNotionMut = useMutation({
+    mutationFn: (serviceId: string) => adminApi.queuePushServiceToNotion(serviceId),
+    onSuccess: (job) => {
+      setTrackJobId(job.jobId)
+      setError(null)
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : String(err)),
+  })
   const createMut = useMutation({
     mutationFn: adminApi.createService,
     onSuccess: () => {
@@ -47,6 +97,64 @@ export default function AdminServices() {
           {error}
         </Alert>
       )}
+      <Card className="admin-card mb-3">
+        <Card.Body>
+          <h2 className="h6 text-white mb-3">Notion</h2>
+          <div className="d-flex flex-wrap gap-2 align-items-center mb-2">
+            {notionStatus?.connected ? (
+              <Badge bg="success">
+                Connected
+                {notionStatus.usesOAuth === false
+                  ? ' (internal integration)'
+                  : notionStatus.workspaceName
+                    ? `: ${notionStatus.workspaceName}`
+                    : ''}
+              </Badge>
+            ) : (
+              <Badge bg="secondary">Not connected</Badge>
+            )}
+            {notionStatus != null && notionStatus.usesOAuth && !notionStatus.connected && (
+              <Button
+                variant="outline-light"
+                size="sm"
+                disabled={connectNotionMut.isPending}
+                onClick={() => connectNotionMut.mutate()}
+              >
+                Connect Notion
+              </Button>
+            )}
+            {notionStatus?.connected && (
+              <Button
+                variant="outline-light"
+                size="sm"
+                disabled={syncFromNotionMut.isPending}
+                onClick={() => syncFromNotionMut.mutate()}
+              >
+                Sync from Notion
+              </Button>
+            )}
+          </div>
+          {notionStatus?.usesOAuth && (
+            <p className="text-white-50 small mb-0">
+              OAuth redirect URL (public integrations only):{' '}
+              <code className="text-white">{`${window.location.origin}/admin/notion/callback`}</code>
+            </p>
+          )}
+          {notionStatus?.usesOAuth === false && (
+            <p className="text-white-50 small mb-0">
+              Using a Notion internal integration token from AWS Secrets Manager — share your Services database with
+              that integration in Notion.
+            </p>
+          )}
+          {trackedJob && (
+            <Alert variant={trackedJob.status === 'FAILED' ? 'danger' : 'info'} className="mt-3 mb-0 py-2 small">
+              Job {trackedJob.jobId.slice(0, 8)}… — {trackedJob.status}
+              {trackedJob.errorMessage ? `: ${trackedJob.errorMessage}` : ''}
+            </Alert>
+          )}
+        </Card.Body>
+      </Card>
+
       <Card className="admin-card">
         <Card.Body>
           <div className="d-flex justify-content-between align-items-center mb-3">
@@ -75,7 +183,7 @@ export default function AdminServices() {
                 </tr>
               </thead>
               <tbody>
-                {services.map((s) => (
+                {(services as any).listAllServices?.map((s: any) => (
                   <tr key={s.id}>
                     <td>{s.name}</td>
                     <td className="text-white-50">{(s.description ?? '').slice(0, 60)}…</td>
@@ -96,10 +204,21 @@ export default function AdminServices() {
                       <Button
                         variant="outline-danger"
                         size="sm"
+                        className="me-1"
                         onClick={() => deleteMut.mutate(s.id)}
                       >
                         Delete
                       </Button>
+                      {notionStatus?.connected && (
+                        <Button
+                          variant="outline-info"
+                          size="sm"
+                          disabled={pushToNotionMut.isPending}
+                          onClick={() => pushToNotionMut.mutate(s.id)}
+                        >
+                          Push to Notion
+                        </Button>
+                      )}
                     </td>
                   </tr>
                 ))}

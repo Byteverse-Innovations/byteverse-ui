@@ -1,7 +1,4 @@
-/* Single wrapper for all sections – same padding rhythm as Contact (no section bg; uses main page background) */
-.home-sections {
-  // Padding via utilities: py-5 px-3 px-md-4 px-lg-5
-}
+@import '../../styles/page-layout.scss';
 
 .img-hero {
   max-width: 500px;
@@ -86,10 +83,21 @@
       background: linear-gradient(90deg, #0F9EDE, #0956be);
       transition: width 0.5s ease;
     }
+
+    &:hover::after {
+      width: 100px;
+    }
   }
 
-  ul {
+  ul.why-byteverse-list {
     padding-left: 0 !important;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: #C2C0CD;
+
+    @media (min-width: 768px) {
+      font-size: 1rem;
+    }
 
     li {
       list-style-type: none;
@@ -213,8 +221,8 @@
   }
 }
 
-// Glow effect for section headings
-h2.display-5 {
+// Glow accent bar on section headings (home)
+.home-page .page-section-heading {
   position: relative;
   text-shadow: 0 0 20px rgba(9, 86, 190, 0.3);
 

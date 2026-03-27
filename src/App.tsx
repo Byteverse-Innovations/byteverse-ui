@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import './App.css'
+import './App.scss'
 import Navigation from './components/common/navigation/navigation'
 import Footer from './components/common/footer/Footer'
 import Home from './components/home/Home'
@@ -16,6 +16,7 @@ import AdminClients from './components/admin/AdminClients'
 import AdminQuotes from './components/admin/AdminQuotes'
 import AdminContacts from './components/admin/AdminContacts'
 import AdminServices from './components/admin/AdminServices'
+import AdminNotionCallback from './components/admin/AdminNotionCallback'
 import QuotePortal from './components/quote/QuotePortal'
 
 const App = () => {
@@ -47,6 +48,7 @@ const App = () => {
               <Route path="quotes" element={<AdminQuotes />} />
               <Route path="contacts" element={<AdminContacts />} />
               <Route path="services" element={<AdminServices />} />
+              <Route path="notion/callback" element={<AdminNotionCallback />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

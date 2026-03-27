@@ -30,11 +30,11 @@ const Navigation = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
         <Navbar.Collapse id="basic-navbar-nav" className="flex-grow-0">
-          <Nav className="me-auto">
+          <Nav variant='underline' className="me-auto">
             <Nav.Link
               as={Link}
               to="/services"
-              className={`mx-2 ${isActive('/services') ? 'active fw-bold' : 'text-white'}`}
+              className={`mx-2 ${isActive('/services') ? 'fw-bold' : 'text-white'}`}
               onClick={() => setExpanded(false)}
             >
               Services
@@ -42,7 +42,7 @@ const Navigation = () => {
             <Nav.Link
               as={Link}
               to="/about"
-              className={`mx-2 ${isActive('/about') ? 'active fw-bold' : 'text-white'}`}
+              className={`mx-2 ${isActive('/about') ? 'fw-bold' : 'text-white'}`}
               onClick={() => setExpanded(false)}
             >
               About
@@ -50,7 +50,7 @@ const Navigation = () => {
             <Nav.Link
               as={Link}
               to="/contact"
-              className={`mx-2 ${isActive('/contact') ? 'active fw-bold' : 'text-white'}`}
+              className={`mx-2 ${isActive('/contact') ? 'fw-bold' : 'text-white'}`}
               onClick={() => setExpanded(false)}
             >
               Contact
@@ -59,7 +59,7 @@ const Navigation = () => {
               <Nav.Link
                 as={Link}
                 to="/admin"
-                className={`mx-2 ${location.pathname.startsWith('/admin') ? 'active fw-bold' : 'text-white'}`}
+                className={`mx-2 ${location.pathname.startsWith('/admin') ? 'fw-bold' : 'text-white'}`}
                 onClick={() => setExpanded(false)}
               >
                 Admin

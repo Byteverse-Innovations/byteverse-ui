@@ -16,6 +16,11 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type CompleteNotionOAuthInput = {
+  code: Scalars['String']['input'];
+  state: Scalars['String']['input'];
+};
+
 export type ContactFormInput = {
   company?: InputMaybe<Scalars['String']['input']>;
   email: Scalars['String']['input'];
@@ -112,13 +117,17 @@ export type LineItemInput = {
 export type Mutation = {
   __typename?: 'Mutation';
   acceptQuote?: Maybe<Quote>;
+  completeNotionOAuth: NotionIntegrationStatus;
   convertQuoteToInvoice?: Maybe<Invoice>;
   createQuote?: Maybe<Quote>;
   createService?: Maybe<Service>;
   deleteQuote?: Maybe<Scalars['Boolean']['output']>;
   deleteService?: Maybe<Scalars['Boolean']['output']>;
   markInvoicePaid?: Maybe<Invoice>;
+  notionOAuthUrl: NotionOAuthUrl;
   persistContactSubmission: ContactSubmission;
+  queuePushServiceToNotion: NotionSyncJob;
+  queueSyncServicesFromNotion: NotionSyncJob;
   submitContactForm: ContactFormResponse;
   updateQuote?: Maybe<Quote>;
   updateService?: Maybe<Service>;
@@ -128,6 +137,11 @@ export type Mutation = {
 export type MutationAcceptQuoteArgs = {
   id: Scalars['ID']['input'];
   token: Scalars['String']['input'];
+};
+
+
+export type MutationCompleteNotionOAuthArgs = {
+  input: CompleteNotionOAuthInput;
 };
 
 
@@ -166,6 +180,11 @@ export type MutationPersistContactSubmissionArgs = {
 };
 
 
+export type MutationQueuePushServiceToNotionArgs = {
+  serviceId: Scalars['ID']['input'];
+};
+
+
 export type MutationSubmitContactFormArgs = {
   input: ContactFormInput;
 };
@@ -182,6 +201,31 @@ export type MutationUpdateServiceArgs = {
   input: UpdateServiceInput;
 };
 
+export type NotionIntegrationStatus = {
+  __typename?: 'NotionIntegrationStatus';
+  connected: Scalars['Boolean']['output'];
+  usesOAuth: Scalars['Boolean']['output'];
+  workspaceName?: Maybe<Scalars['String']['output']>;
+};
+
+export type NotionOAuthUrl = {
+  __typename?: 'NotionOAuthUrl';
+  state: Scalars['String']['output'];
+  url: Scalars['String']['output'];
+};
+
+export type NotionSyncJob = {
+  __typename?: 'NotionSyncJob';
+  createdAt?: Maybe<Scalars['String']['output']>;
+  errorMessage?: Maybe<Scalars['String']['output']>;
+  jobId: Scalars['ID']['output'];
+  serviceId?: Maybe<Scalars['ID']['output']>;
+  status: Scalars['String']['output'];
+  tenantId: Scalars['ID']['output'];
+  type: Scalars['String']['output'];
+  updatedAt?: Maybe<Scalars['String']['output']>;
+};
+
 export type Query = {
   __typename?: 'Query';
   getIndividualItem?: Maybe<Service>;
@@ -192,6 +236,8 @@ export type Query = {
   listContactSubmissions: Array<ContactSubmission>;
   listInvoices: Array<Invoice>;
   listQuotes: Array<Quote>;
+  notionIntegrationStatus: NotionIntegrationStatus;
+  notionSyncJob?: Maybe<NotionSyncJob>;
 };
 
 
@@ -212,6 +258,11 @@ export type QueryGetQuoteArgs = {
 
 export type QueryGetQuoteByTokenArgs = {
   token: Scalars['String']['input'];
+};
+
+
+export type QueryNotionSyncJobArgs = {
+  id: Scalars['ID']['input'];
 };
 
 export type Quote = {

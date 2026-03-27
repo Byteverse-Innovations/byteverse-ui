@@ -235,3 +235,138 @@ export async function deleteService(id: string): Promise<boolean> {
   const data = await requestWithAuth<{ deleteService: boolean }>(DELETE_SERVICE, { id })
   return data.deleteService === true
 }
+
+export type NotionOAuthUrl = { url: string; state: string }
+export type NotionIntegrationStatus = {
+  connected: boolean
+  workspaceName?: string | null
+  usesOAuth: boolean
+}
+export type NotionSyncJob = {
+  jobId: string
+  tenantId: string
+  type: string
+  status: string
+  serviceId?: string | null
+  createdAt?: string | null
+  updatedAt?: string | null
+  errorMessage?: string | null
+}
+
+const NOTION_OAUTH_URL = `
+  mutation notionOAuthUrl {
+    notionOAuthUrl { url state }
+  }
+`
+
+const COMPLETE_NOTION_OAUTH = `
+  mutation completeNotionOAuth($input: CompleteNotionOAuthInput!) {
+    completeNotionOAuth(input: $input) {
+      connected
+      workspaceName
+      usesOAuth
+    }
+  }
+`
+
+const NOTION_INTEGRATION_STATUS = `
+  query notionIntegrationStatus {
+    notionIntegrationStatus {
+      connected
+      workspaceName
+      usesOAuth
+    }
+  }
+`
+
+const NOTION_SYNC_JOB = `
+  query notionSyncJob($id: ID!) {
+    notionSyncJob(id: $id) {
+      jobId
+      tenantId
+      type
+      status
+      serviceId
+      createdAt
+      updatedAt
+      errorMessage
+    }
+  }
+`
+
+const QUEUE_SYNC_SERVICES_FROM_NOTION = `
+  mutation queueSyncServicesFromNotion {
+    queueSyncServicesFromNotion {
+      jobId
+      tenantId
+      type
+      status
+      serviceId
+      createdAt
+      updatedAt
+      errorMessage
+    }
+  }
+`
+
+const QUEUE_PUSH_SERVICE_TO_NOTION = `
+  mutation queuePushServiceToNotion($serviceId: ID!) {
+    queuePushServiceToNotion(serviceId: $serviceId) {
+      jobId
+      tenantId
+      type
+      status
+      serviceId
+      createdAt
+      updatedAt
+      errorMessage
+    }
+  }
+`
+
+export async function notionOAuthUrl(): Promise<NotionOAuthUrl> {
+  const data = await requestWithAuth<{ notionOAuthUrl: NotionOAuthUrl }>(NOTION_OAUTH_URL)
+  if (!data.notionOAuthUrl) throw new Error('Failed to start Notion OAuth')
+  return data.notionOAuthUrl
+}
+
+export async function completeNotionOAuth(input: {
+  code: string
+  state: string
+}): Promise<NotionIntegrationStatus> {
+  const data = await requestWithAuth<{ completeNotionOAuth: NotionIntegrationStatus }>(
+    COMPLETE_NOTION_OAUTH,
+    { input }
+  )
+  if (!data.completeNotionOAuth) throw new Error('Failed to complete Notion OAuth')
+  return data.completeNotionOAuth
+}
+
+export async function notionIntegrationStatus(): Promise<NotionIntegrationStatus> {
+  const data = await requestWithAuth<{ notionIntegrationStatus: NotionIntegrationStatus }>(
+    NOTION_INTEGRATION_STATUS
+  )
+  return data.notionIntegrationStatus
+}
+
+export async function notionSyncJob(id: string): Promise<NotionSyncJob | null> {
+  const data = await requestWithAuth<{ notionSyncJob: NotionSyncJob | null }>(NOTION_SYNC_JOB, { id })
+  return data.notionSyncJob ?? null
+}
+
+export async function queueSyncServicesFromNotion(): Promise<NotionSyncJob> {
+  const data = await requestWithAuth<{ queueSyncServicesFromNotion: NotionSyncJob }>(
+    QUEUE_SYNC_SERVICES_FROM_NOTION
+  )
+  if (!data.queueSyncServicesFromNotion) throw new Error('Failed to queue sync')
+  return data.queueSyncServicesFromNotion
+}
+
+export async function queuePushServiceToNotion(serviceId: string): Promise<NotionSyncJob> {
+  const data = await requestWithAuth<{ queuePushServiceToNotion: NotionSyncJob }>(
+    QUEUE_PUSH_SERVICE_TO_NOTION,
+    { serviceId }
+  )
+  if (!data.queuePushServiceToNotion) throw new Error('Failed to queue push to Notion')
+  return data.queuePushServiceToNotion
+}

@@ -1,5 +1,10 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import { getCurrentUser, signIn as amplifySignIn, signOut as amplifySignOut } from 'aws-amplify/auth'
+import {
+  getCurrentUser,
+  signIn as amplifySignIn,
+  signOut as amplifySignOut,
+  confirmSignIn,
+} from 'aws-amplify/auth'
 
 /** Comma-separated list of usernames allowed to access admin. If unset, any authenticated user can access. */
 const ADMIN_USERNAMES = (import.meta.env.VITE_ADMIN_USERNAMES ?? '')
@@ -15,8 +20,11 @@ type AuthState = {
   isAdmin: boolean
 }
 
+export type SignInResult = { success: true } | { newPasswordRequired: true }
+
 type AuthContextValue = AuthState & {
-  signIn: (username: string, password: string) => Promise<void>
+  signIn: (username: string, password: string) => Promise<SignInResult>
+  confirmNewPassword: (newPassword: string) => Promise<void>
   signOut: () => Promise<void>
   clearError: () => void
 }
@@ -50,16 +58,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [checkUser])
 
   const signIn = useCallback(
-    async (username: string, password: string) => {
+    async (username: string, password: string): Promise<SignInResult> => {
       setError(null)
       setLoading(true)
       try {
-        await amplifySignIn({ username, password })
+        const result = await amplifySignIn({ username, password })
+        const step = (result as { nextStep?: { signInStep?: string } })?.nextStep?.signInStep
+        if (step === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
+          setLoading(false)
+          return { newPasswordRequired: true }
+        }
+        await checkUser()
+        return { success: true }
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err)
+        const errObj = err as { name?: string; code?: string; ChallengeName?: string }
+        const isNewPasswordRequired =
+          errObj?.name === 'NewPasswordRequiredException' ||
+          errObj?.code === 'NewPasswordRequiredException' ||
+          errObj?.ChallengeName === 'NEW_PASSWORD_REQUIRED' ||
+          /NEW_PASSWORD_REQUIRED/i.test(message) ||
+          (typeof message === 'string' && message.includes('NEW_PASSWORD_REQUIRED'))
+        if (isNewPasswordRequired) {
+          setError(null)
+          setLoading(false)
+          return { newPasswordRequired: true }
+        }
+        setError(message)
+        setUser(null)
+        throw err
+      } finally {
+        setLoading(false)
+      }
+    },
+    [checkUser]
+  )
+
+  const confirmNewPassword = useCallback(
+    async (newPassword: string) => {
+      setError(null)
+      setLoading(true)
+      try {
+        await confirmSignIn({ challengeResponse: newPassword })
         await checkUser()
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err)
         setError(message)
-        setUser(null)
         throw err
       } finally {
         setLoading(false)
@@ -87,6 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     error,
     isAdmin,
     signIn,
+    confirmNewPassword,
     signOut,
     clearError,
   }

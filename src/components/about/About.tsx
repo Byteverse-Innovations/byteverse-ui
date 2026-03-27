@@ -1,5 +1,5 @@
 import React from 'react'
-import { Container, Row, Col, Card, ProgressBar, Button } from 'react-bootstrap'
+import { Container, Row, Col, Card, ProgressBar } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import { Rocket, Star, Handshake, Gem } from 'lucide-react'
 import './about.scss'
@@ -13,13 +13,13 @@ const About: React.FC = () => {
   ]
 
   return (
-    <Container fluid className="py-0">
-      {/* Hero – same pattern as Home/Services */}
+    <Container fluid className="py-0 site-page">
+      {/* Hero */}
       <Row className="mb-0">
-        <Col className="d-flex flex-row align-items-center justify-content-center py-5 px-3 px-md-4 px-lg-5">
-          <div className="d-flex flex-column text-center about-hero">
-            <h1 className="display-4 fw-bold mb-4 text-white">Who We Are</h1>
-            <p className="lead mb-0 gray-2 fs-6">
+        <Col className="d-flex flex-row align-items-center justify-content-center page-hero-wrap px-3 px-md-4 px-lg-5">
+          <div className="d-flex flex-column text-center page-hero">
+            <h1 className="page-hero__title text-white">Who We Are</h1>
+            <p className="page-hero__lead mb-0 gray-2">
               We're a passionate team of developers, designers, and strategists dedicated to
               transforming businesses through innovative technology solutions.
             </p>
@@ -31,11 +31,12 @@ const About: React.FC = () => {
         <span className="section-break__diamond" />
       </div>
 
-      <div className="py-5 px-3 px-md-4 px-lg-5">
+      <div className="page-main px-3 px-md-4 px-lg-5">
         {/* Story + Mission/Vision */}
-        <Row className="mb-5 section-fade-in">
+        <Row className="mb-4 section-fade-in">
           <Col lg={6} className="mb-4">
-            <h2 className="display-5 fw-bold mb-4 text-white">Our Story</h2>
+            <p className="page-section-kicker mb-0">About us</p>
+            <h2 className="page-section-heading mb-3 text-white">Our Story</h2>
             <p className="mb-3 gray-2">
               Byteverse was founded in 2023 with a simple mission: to help businesses
               leverage technology to achieve their goals. We're a growing company—and
@@ -72,9 +73,10 @@ const About: React.FC = () => {
         </div>
 
         {/* Values */}
-        <Row className="mb-5 section-fade-in">
-          <Col lg={12} className="mb-4">
-            <h2 className="display-5 fw-bold text-white mb-2">Our Values</h2>
+        <Row className="mb-4 section-fade-in">
+          <Col lg={12} className="mb-3">
+            <p className="page-section-kicker mb-0">Principles</p>
+            <h2 className="page-section-heading text-white mb-2">Our Values</h2>
           </Col>
           {values.map((value, index) => {
             const IconComponent = value.Icon
@@ -95,9 +97,10 @@ const About: React.FC = () => {
         </Row>
 
         {/* Why Choose Us */}
-        <Row className="mb-5 section-fade-in">
-          <Col lg={12} className="mb-4">
-            <h2 className="display-5 fw-bold text-white mb-4">Why Choose Us</h2>
+        <Row className="mb-4 section-fade-in">
+          <Col lg={12} className="mb-3">
+            <p className="page-section-kicker mb-0">Differentiators</p>
+            <h2 className="page-section-heading text-white mb-4">Why Choose Us</h2>
           </Col>
           <Col lg={12}>
             <div className="about-why-choose p-4 p-lg-5 rounded">
@@ -119,9 +122,10 @@ const About: React.FC = () => {
         </div>
 
         {/* Expertise */}
-        <Row className="mb-5 section-fade-in about-expertise">
-          <Col lg={12} className="text-center mb-4">
-            <h2 className="display-5 fw-bold text-white mb-2">Our Expertise</h2>
+        <Row className="mb-4 section-fade-in about-expertise">
+          <Col lg={12} className="text-center mb-3">
+            <p className="page-section-kicker mb-0">Skills</p>
+            <h2 className="page-section-heading text-white mb-2">Our Expertise</h2>
           </Col>
           <Col lg={6} className="mb-4 text-center">
             <h5>Frontend Development</h5>
@@ -145,20 +149,20 @@ const About: React.FC = () => {
           <span className="section-break__diamond" />
         </div>
 
-        {/* CTA – match Home/Services */}
-        <Row className="mb-0 section-fade-in">
+        {/* CTA */}
+        <Row className="mb-0 section-fade-in page-cta-row">
           <Col lg={8} className="mx-auto text-center">
-            <h2 className="display-5 fw-bold mb-3 text-white">Ready to Work With Us?</h2>
-            <p className="lead gray-2 mb-4">
+            <h2 className="page-section-heading text-white">Ready to Work With Us?</h2>
+            <p className="page-section-lead gray-2 mb-3">
               Let's discuss how we can help bring your vision to life with our expertise and passion for technology.
             </p>
             <div className="d-flex flex-column flex-md-row gap-3 justify-content-center">
-              <Button variant="primary" size="lg" as={Link as any} to="/contact">
+              <Link className="btn btn-primary btn-lg" to="/contact">
                 Start a Project
-              </Button>
-              <Button variant="outline-light" size="lg" as={Link as any} to="/services" className="cta-btn-secondary">
+              </Link>
+              <Link className="btn btn-outline-light btn-lg cta-btn-secondary" to="/services">
                 See Our Services
-              </Button>
+              </Link>
             </div>
           </Col>
         </Row>
@@ -167,4 +171,4 @@ const About: React.FC = () => {
   )
 }
 
-export default About 
+export default About

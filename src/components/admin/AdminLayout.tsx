@@ -24,15 +24,23 @@ export default function AdminLayout() {
   return (
     <Container fluid className="admin-layout">
       <Row>
-        <Col xs={12} md={3} lg={2} className="admin-sidebar px-0">
+        <Col
+          xs={12}
+          md={3}
+          lg={2}
+          className={`admin-sidebar px-0${sidebarOpen ? ' admin-sidebar--open' : ''}`}
+        >
           <div
             className={`sidebar-backdrop ${sidebarOpen ? 'open' : ''}`}
             onClick={() => setSidebarOpen(false)}
             aria-hidden="true"
           />
-          <div className={`sidebar-sticky py-3 ${sidebarOpen ? 'sidebar-open' : ''}`}>
-            <div className="d-flex align-items-center justify-content-between px-3 mb-3">
-              <h2 className="h6 text-white mb-0">Admin</h2>
+          <div className="sidebar-sticky py-3">
+            <div className="d-flex align-items-center justify-content-between px-3 mb-3 sidebar-brand-row">
+              <div className="sidebar-brand">
+                <span className="sidebar-brand-mark" aria-hidden="true" />
+                <h2 className="sidebar-brand-title mb-0">Admin</h2>
+              </div>
               <Button
                 variant="link"
                 className="admin-sidebar-toggle d-md-none text-white p-0"
@@ -58,10 +66,12 @@ export default function AdminLayout() {
               ))}
             </Nav>
             <div className="sidebar-footer px-3 mt-4">
-              <span className="text-white-50 small d-block">{user?.username}</span>
+              <span className="sidebar-user text-white-50 small d-block text-truncate" title={user?.username}>
+                {user?.username}
+              </span>
               <button
                 type="button"
-                className="btn btn-link btn-sm p-0 text-primary"
+                className="btn admin-sidebar-signout btn-sm"
                 onClick={() => signOut()}
               >
                 Sign out
