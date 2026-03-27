@@ -1,6 +1,6 @@
 import React from 'react'
 import { Card } from 'react-bootstrap'
-import './AdminQuotes.scss'
+import AdminPageHeader from './AdminPageHeader'
 
 /**
  * Placeholder for Project Management (CRUD).
@@ -10,11 +10,15 @@ import './AdminQuotes.scss'
 export default function AdminProjects() {
   return (
     <>
-      <h1 className="h3 mb-4 text-white">Projects</h1>
+      <AdminPageHeader
+        eyebrow="Workspace"
+        title="Projects"
+        description="Internal project records will live here once the backend Project model and APIs are available."
+      />
       <Card className="admin-card">
         <Card.Body>
-          <h2 className="h6 text-white mb-2">Project Management</h2>
-          <p className="text-white-50 mb-0">
+          <h2 className="admin-card-heading mb-3">Project management</h2>
+          <p className="text-white-50 mb-0 small">
             Full project CRUD will be available here once the Project model and API are added to the
             backend. You can extend the GraphQL schema with a <code>Project</code> type and
             listProjects / getProject / createProject / updateProject / deleteProject, then wire

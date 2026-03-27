@@ -71,6 +71,7 @@ export type CreateQuoteInput = {
   clientName: Scalars['String']['input'];
   lineItems: Array<LineItemInput>;
   status: QuoteStatus;
+  timelineEvents?: InputMaybe<Array<TimelineEventInput>>;
   total: Scalars['Float']['input'];
 };
 
@@ -96,8 +97,10 @@ export type Invoice = {
   id: Scalars['ID']['output'];
   lineItems: Array<LineItem>;
   paidAt?: Maybe<Scalars['String']['output']>;
+  quoteAssetsPrefix?: Maybe<Scalars['String']['output']>;
   quoteId: Scalars['String']['output'];
   status: InvoiceStatus;
+  timelineEvents?: Maybe<Array<TimelineEvent>>;
   total: Scalars['Float']['output'];
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
@@ -112,14 +115,18 @@ export type LineItem = {
   __typename?: 'LineItem';
   amount: Scalars['Float']['output'];
   description: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
   quantity: Scalars['Float']['output'];
+  serviceId?: Maybe<Scalars['ID']['output']>;
   unitPrice: Scalars['Float']['output'];
 };
 
 export type LineItemInput = {
   amount: Scalars['Float']['input'];
   description: Scalars['String']['input'];
+  id?: InputMaybe<Scalars['ID']['input']>;
   quantity: Scalars['Float']['input'];
+  serviceId?: InputMaybe<Scalars['ID']['input']>;
   unitPrice: Scalars['Float']['input'];
 };
 
@@ -132,6 +139,7 @@ export type Mutation = {
   createService?: Maybe<Service>;
   deleteQuote?: Maybe<Scalars['Boolean']['output']>;
   deleteService?: Maybe<Scalars['Boolean']['output']>;
+  generateQuoteClientPackage?: Maybe<Quote>;
   markInvoicePaid?: Maybe<Invoice>;
   notionOAuthUrl: NotionOAuthUrl;
   persistContactSubmission: ContactSubmission;
@@ -176,6 +184,11 @@ export type MutationDeleteQuoteArgs = {
 
 export type MutationDeleteServiceArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationGenerateQuoteClientPackageArgs = {
+  quoteId: Scalars['ID']['input'];
 };
 
 
@@ -241,6 +254,7 @@ export type Query = {
   getInvoice?: Maybe<Invoice>;
   getQuote?: Maybe<Quote>;
   getQuoteByToken?: Maybe<Quote>;
+  getQuoteClientPackageDownload: QuoteClientPackageDownload;
   listAllServices: Array<Service>;
   listContactSubmissions: Array<ContactSubmission>;
   listInvoices: Array<Invoice>;
@@ -270,6 +284,11 @@ export type QueryGetQuoteByTokenArgs = {
 };
 
 
+export type QueryGetQuoteClientPackageDownloadArgs = {
+  quoteId: Scalars['ID']['input'];
+};
+
+
 export type QueryNotionSyncJobArgs = {
   id: Scalars['ID']['input'];
 };
@@ -282,10 +301,28 @@ export type Quote = {
   createdBy?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   lineItems: Array<LineItem>;
+  quoteAssetsPrefix?: Maybe<Scalars['String']['output']>;
   status: QuoteStatus;
+  timelineEvents?: Maybe<Array<TimelineEvent>>;
   token?: Maybe<Scalars['String']['output']>;
   total: Scalars['Float']['output'];
   updatedAt?: Maybe<Scalars['String']['output']>;
+};
+
+export type QuoteClientPackageDownload = {
+  __typename?: 'QuoteClientPackageDownload';
+  expiresAt: Scalars['String']['output'];
+  files: Array<QuoteClientPackageFile>;
+  prefix: Scalars['String']['output'];
+  quoteId: Scalars['ID']['output'];
+};
+
+export type QuoteClientPackageFile = {
+  __typename?: 'QuoteClientPackageFile';
+  contentType: Scalars['String']['output'];
+  downloadUrl: Scalars['String']['output'];
+  fileName: Scalars['String']['output'];
+  key: Scalars['String']['output'];
 };
 
 export enum QuoteStatus {
@@ -312,6 +349,27 @@ export type Service = {
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
+export type TimelineEvent = {
+  __typename?: 'TimelineEvent';
+  chartLabel: Scalars['String']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  endDate: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  lineItemId?: Maybe<Scalars['ID']['output']>;
+  sortOrder?: Maybe<Scalars['Int']['output']>;
+  startDate: Scalars['String']['output'];
+};
+
+export type TimelineEventInput = {
+  chartLabel: Scalars['String']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
+  endDate: Scalars['String']['input'];
+  id?: InputMaybe<Scalars['ID']['input']>;
+  lineItemId?: InputMaybe<Scalars['ID']['input']>;
+  sortOrder?: InputMaybe<Scalars['Int']['input']>;
+  startDate: Scalars['String']['input'];
+};
+
 export type UpdateInvoiceInput = {
   paidAt?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<InvoiceStatus>;
@@ -322,6 +380,7 @@ export type UpdateQuoteInput = {
   clientName?: InputMaybe<Scalars['String']['input']>;
   lineItems?: InputMaybe<Array<LineItemInput>>;
   status?: InputMaybe<QuoteStatus>;
+  timelineEvents?: InputMaybe<Array<TimelineEventInput>>;
   total?: InputMaybe<Scalars['Float']['input']>;
 };
 

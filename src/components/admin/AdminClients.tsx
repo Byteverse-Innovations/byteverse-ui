@@ -2,7 +2,7 @@ import React from 'react'
 import { Table, Card, Badge } from 'react-bootstrap'
 import { useQuery } from '@tanstack/react-query'
 import * as adminApi from '../../api/admin-api'
-import './AdminQuotes.scss'
+import AdminPageHeader from './AdminPageHeader'
 
 type ClientRow = {
   id: string
@@ -102,52 +102,54 @@ export default function AdminClients() {
 
   return (
     <>
-      <h1 className="h3 mb-4 text-white">Clients</h1>
+      <AdminPageHeader
+        eyebrow="Directory"
+        title="Clients"
+        description="Aggregated from quotes and contact form submissions. Activity and status reflect the latest quote or contact."
+      />
       <Card className="admin-card">
         <Card.Body>
-          <p className="text-white-50 small mb-3">
-            Aggregated from quotes and contact form submissions. Activity and status reflect latest
-            quote or contact.
-          </p>
           {isLoading ? (
             <p className="text-white-50">Loading…</p>
           ) : (
-            <Table responsive size="sm" className="text-white admin-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Last activity</th>
-                  <th>Status</th>
-                  <th>Quotes</th>
-                  <th>Contacts</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr key={r.id}>
-                    <td>{r.name || '—'}</td>
-                    <td>{r.email}</td>
-                    <td className="text-white-50">
-                      {r.lastActivity
-                        ? new Date(r.lastActivity).toLocaleDateString(undefined, {
-                            dateStyle: 'short',
-                          })
-                        : '—'}
-                    </td>
-                    <td>
-                      {r.status && (
-                        <Badge bg="secondary" text="dark">
-                          {r.status}
-                        </Badge>
-                      )}
-                    </td>
-                    <td>{r.quoteCount ?? 0}</td>
-                    <td>{r.contactCount ?? 0}</td>
+            <div className="admin-table-wrap">
+              <Table responsive size="sm" className="text-white admin-table mb-0">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Last activity</th>
+                    <th>Status</th>
+                    <th>Quotes</th>
+                    <th>Contacts</th>
                   </tr>
-                ))}
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {rows.map((r) => (
+                    <tr key={r.id}>
+                      <td>{r.name || '—'}</td>
+                      <td>{r.email}</td>
+                      <td className="text-white-50">
+                        {r.lastActivity
+                          ? new Date(r.lastActivity).toLocaleDateString(undefined, {
+                              dateStyle: 'short',
+                            })
+                          : '—'}
+                      </td>
+                      <td>
+                        {r.status && (
+                          <Badge bg="secondary" text="dark">
+                            {r.status}
+                          </Badge>
+                        )}
+                      </td>
+                      <td>{r.quoteCount ?? 0}</td>
+                      <td>{r.contactCount ?? 0}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
           )}
           {!isLoading && rows.length === 0 && (
             <p className="text-white-50 mb-0">No clients yet (no quotes or contact submissions).</p>

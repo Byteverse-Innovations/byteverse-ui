@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { Card, Button, Table, Spinner, Alert } from 'react-bootstrap'
 import { getQuoteByToken, acceptQuote } from '../../api/quote-portal-api'
 import type { Quote } from '../../api/admin-api'
+import logoMark from '../../assets/icon-only-transparent-no-buffer.png'
 import './QuotePortal.scss'
 
 export default function QuotePortal() {
@@ -101,7 +102,14 @@ export default function QuotePortal() {
       )}
       <Card className="quote-portal-card">
         <Card.Body>
-          <h1 className="h4 text-white mb-3">Your quote</h1>
+          <header className="quote-portal-brand mb-4">
+            <img src={logoMark} alt="" className="quote-portal-brand-logo" width={44} height={44} />
+            <div>
+              <div className="quote-portal-brand-name">Byteverse</div>
+              <div className="quote-portal-brand-tagline">reach@byteverseinnov.com</div>
+            </div>
+          </header>
+          <h1 className="h5 text-white mb-3">Your quote</h1>
           <p className="text-white-50 mb-2">
             Client: <strong className="text-white">{quote.clientName}</strong> ({quote.clientEmail})
           </p>

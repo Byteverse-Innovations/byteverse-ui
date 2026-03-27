@@ -5,7 +5,7 @@ import { graphqlClient } from '../../api/clients'
 import { useListAllServicesQuery } from '../../api/operations/ops'
 import * as adminApi from '../../api/admin-api'
 import type { Service } from '../../api/admin-api'
-import './AdminQuotes.scss'
+import AdminPageHeader from './AdminPageHeader'
 
 export default function AdminServices() {
   const queryClient = useQueryClient()
@@ -91,7 +91,11 @@ export default function AdminServices() {
 
   return (
     <>
-      <h1 className="h3 mb-4 text-white">Services</h1>
+      <AdminPageHeader
+        eyebrow="Catalog"
+        title="Services"
+        description="Manage offerings for the marketing site and sync with Notion when connected."
+      />
       {error && (
         <Alert variant="danger" dismissible onClose={() => setError(null)}>
           {error}
@@ -99,7 +103,7 @@ export default function AdminServices() {
       )}
       <Card className="admin-card mb-3">
         <Card.Body>
-          <h2 className="h6 text-white mb-3">Notion</h2>
+          <h2 className="admin-card-heading mb-3">Notion</h2>
           <div className="d-flex flex-wrap gap-2 align-items-center mb-2">
             {notionStatus?.connected ? (
               <Badge bg="success">
@@ -157,8 +161,8 @@ export default function AdminServices() {
 
       <Card className="admin-card">
         <Card.Body>
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h2 className="h6 text-white mb-0">Services</h2>
+          <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h2 className="admin-card-heading mb-0">All services</h2>
             <Button
               variant="primary"
               onClick={() => {
@@ -172,58 +176,60 @@ export default function AdminServices() {
           {isLoading ? (
             <p className="text-white-50">Loading…</p>
           ) : (
-            <Table responsive size="sm" className="text-white admin-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Description</th>
-                  <th>Price</th>
-                  <th>Category</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(services as any).listAllServices?.map((s: any) => (
-                  <tr key={s.id}>
-                    <td>{s.name}</td>
-                    <td className="text-white-50">{(s.description ?? '').slice(0, 60)}…</td>
-                    <td>{s.price != null ? `$${s.price}` : '—'}</td>
-                    <td>{s.category ?? '—'}</td>
-                    <td>
-                      <Button
-                        variant="outline-light"
-                        size="sm"
-                        className="me-1"
-                        onClick={() => {
-                          setEditing(s as Service)
-                          setShowModal(true)
-                        }}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        className="me-1"
-                        onClick={() => deleteMut.mutate(s.id)}
-                      >
-                        Delete
-                      </Button>
-                      {notionStatus?.connected && (
-                        <Button
-                          variant="outline-info"
-                          size="sm"
-                          disabled={pushToNotionMut.isPending}
-                          onClick={() => pushToNotionMut.mutate(s.id)}
-                        >
-                          Push to Notion
-                        </Button>
-                      )}
-                    </td>
+            <div className="admin-table-wrap">
+              <Table responsive size="sm" className="text-white admin-table mb-0">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                    <th>Category</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {(services as any).listAllServices?.map((s: any) => (
+                    <tr key={s.id}>
+                      <td>{s.name}</td>
+                      <td className="text-white-50">{(s.description ?? '').slice(0, 60)}…</td>
+                      <td>{s.price != null ? `$${s.price}` : '—'}</td>
+                      <td>{s.category ?? '—'}</td>
+                      <td>
+                        <Button
+                          variant="outline-light"
+                          size="sm"
+                          className="me-1"
+                          onClick={() => {
+                            setEditing(s as Service)
+                            setShowModal(true)
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          className="me-1"
+                          onClick={() => deleteMut.mutate(s.id)}
+                        >
+                          Delete
+                        </Button>
+                        {notionStatus?.connected && (
+                          <Button
+                            variant="outline-info"
+                            size="sm"
+                            disabled={pushToNotionMut.isPending}
+                            onClick={() => pushToNotionMut.mutate(s.id)}
+                          >
+                            Push to Notion
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
           )}
         </Card.Body>
       </Card>

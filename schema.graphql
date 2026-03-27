@@ -15,10 +15,22 @@ type Service {
 }
 
 type LineItem {
+  id: ID!
   description: String!
   quantity: Float!
   unitPrice: Float!
   amount: Float!
+  serviceId: ID
+}
+
+type TimelineEvent {
+  id: ID!
+  chartLabel: String!
+  description: String
+  startDate: String!
+  endDate: String!
+  lineItemId: ID
+  sortOrder: Int
 }
 
 type Quote {
@@ -32,6 +44,8 @@ type Quote {
   createdAt: String
   updatedAt: String
   createdBy: String
+  timelineEvents: [TimelineEvent!]
+  quoteAssetsPrefix: String
 }
 
 type Invoice {
@@ -46,6 +60,8 @@ type Invoice {
   paidAt: String
   createdAt: String
   updatedAt: String
+  timelineEvents: [TimelineEvent!]
+  quoteAssetsPrefix: String
 }
 
 enum QuoteStatus {
@@ -84,6 +100,7 @@ type Query {
 
   notionIntegrationStatus: NotionIntegrationStatus! @aws_cognito_user_pools
   notionSyncJob(id: ID!): NotionSyncJob @aws_cognito_user_pools
+  getQuoteClientPackageDownload(quoteId: ID!): QuoteClientPackageDownload! @aws_cognito_user_pools
 }
 
 input ContactFormInput {
@@ -122,11 +139,37 @@ type NotionSyncJob @aws_cognito_user_pools {
   errorMessage: String
 }
 
+type QuoteClientPackageFile @aws_cognito_user_pools {
+  key: String!
+  fileName: String!
+  contentType: String!
+  downloadUrl: String!
+}
+
+type QuoteClientPackageDownload @aws_cognito_user_pools {
+  quoteId: ID!
+  prefix: String!
+  files: [QuoteClientPackageFile!]!
+  expiresAt: String!
+}
+
 input LineItemInput {
+  id: ID
   description: String!
   quantity: Float!
   unitPrice: Float!
   amount: Float!
+  serviceId: ID
+}
+
+input TimelineEventInput {
+  id: ID
+  chartLabel: String!
+  description: String
+  startDate: String!
+  endDate: String!
+  lineItemId: ID
+  sortOrder: Int
 }
 
 input CreateQuoteInput {
@@ -135,6 +178,7 @@ input CreateQuoteInput {
   status: QuoteStatus!
   lineItems: [LineItemInput!]!
   total: Float!
+  timelineEvents: [TimelineEventInput!]
 }
 
 input UpdateQuoteInput {
@@ -143,6 +187,7 @@ input UpdateQuoteInput {
   status: QuoteStatus
   lineItems: [LineItemInput!]
   total: Float
+  timelineEvents: [TimelineEventInput!]
 }
 
 input CreateInvoiceInput {
@@ -166,6 +211,7 @@ type Mutation {
   createQuote(input: CreateQuoteInput!): Quote @aws_cognito_user_pools
   updateQuote(id: ID!, input: UpdateQuoteInput!): Quote @aws_cognito_user_pools
   deleteQuote(id: ID!): Boolean @aws_cognito_user_pools
+  generateQuoteClientPackage(quoteId: ID!): Quote @aws_cognito_user_pools
   convertQuoteToInvoice(quoteId: ID!): Invoice @aws_cognito_user_pools
   markInvoicePaid(id: ID!): Invoice @aws_cognito_user_pools
   createService(input: CreateServiceInput!): Service @aws_cognito_user_pools

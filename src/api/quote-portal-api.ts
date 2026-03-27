@@ -4,16 +4,18 @@ import type { Quote } from './admin-api'
 const GET_QUOTE_BY_TOKEN = `
   query getQuoteByToken($token: String!) {
     getQuoteByToken(token: $token) {
-      id clientName clientEmail status total token createdAt updatedAt
-      lineItems { description quantity unitPrice amount }
+      id clientName clientEmail status total token quoteAssetsPrefix createdAt updatedAt
+      lineItems { id description quantity unitPrice amount serviceId }
+      timelineEvents { id chartLabel description startDate endDate lineItemId sortOrder }
     }
   }
 `
 const ACCEPT_QUOTE = `
   mutation acceptQuote($id: ID!, $token: String!) {
     acceptQuote(id: $id, token: $token) {
-      id clientName clientEmail status total token createdAt updatedAt
-      lineItems { description quantity unitPrice amount }
+      id clientName clientEmail status total token quoteAssetsPrefix createdAt updatedAt
+      lineItems { id description quantity unitPrice amount serviceId }
+      timelineEvents { id chartLabel description startDate endDate lineItemId sortOrder }
     }
   }
 `
