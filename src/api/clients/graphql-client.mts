@@ -116,6 +116,15 @@ class AppSyncGraphQLClient {
 }
 
 const { endpoint, apiKey } = getAppSyncConfig()
-const graphqlClient = new AppSyncGraphQLClient(endpoint, apiKey) as unknown as GraphQLClient
+const clientInstance = new AppSyncGraphQLClient(endpoint, apiKey)
+const graphqlClient = clientInstance as unknown as GraphQLClient
+
+/** Use for admin-only operations that require Cognito (e.g. listQuotes, createService). */
+export async function requestWithAuth<T = any>(
+  document: RequestDocument,
+  variables?: Variables
+): Promise<T> {
+  return clientInstance.request<T>(document, variables, true)
+}
 
 export default graphqlClient

@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { Navbar, Nav, Container } from 'react-bootstrap'
 import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '../../../contexts/AuthContext'
 import logo from '../../../assets/icon-only-transparent-no-buffer.png'
 import './navigation.scss'
 
 const Navigation = () => {
   const [expanded, setExpanded] = useState(false)
   const location = useLocation()
+  const { user } = useAuth()
 
   const isActive = (path: string) => {
     return location.pathname === path
@@ -28,7 +30,7 @@ const Navigation = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
         <Navbar.Collapse id="basic-navbar-nav" className="flex-grow-0">
-          <Nav className="me-auto">
+          <Nav variant='underline' className="me-auto">
             <Nav.Link
               as={Link}
               to="/services"
@@ -53,6 +55,25 @@ const Navigation = () => {
             >
               Contact
             </Nav.Link>
+            {user ? (
+              <Nav.Link
+                as={Link}
+                to="/admin"
+                className={`mx-2 ${location.pathname.startsWith('/admin') ? 'active fw-bold' : 'text-white'}`}
+                onClick={() => setExpanded(false)}
+              >
+                Admin
+              </Nav.Link>
+            ) : (
+              <Nav.Link
+                as={Link}
+                to="/login"
+                className={`mx-2 ${isActive('/login') ? 'active fw-bold' : 'text-white'}`}
+                onClick={() => setExpanded(false)}
+              >
+                Login
+              </Nav.Link>
+            )}
           </Nav>
         </Navbar.Collapse>
       </Container>

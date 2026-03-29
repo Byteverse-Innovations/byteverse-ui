@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react'
-import { Container, Row, Col, Card, Badge, ListGroup, Spinner, Alert, Button } from 'react-bootstrap'
+import { Container, Row, Col, Card, Badge, ListGroup, Spinner, Alert, Accordion } from 'react-bootstrap'
 import { Link } from 'react-router-dom'
 import { useListAllServicesQuery } from '../../api/operations/ops'
+import { groupBy } from 'lodash'
 import './services.scss'
 
 const Services: React.FC = () => {
   const [graphqlClient, setGraphqlClient] = useState<any>(null)
+  const [categorizedServices, setCategorizedServices] = useState<{ [key: string]: any[]} | null>(null)
+  const { data, isLoading, isError, error } = useListAllServicesQuery(graphqlClient)
 
   useEffect(() => {
     const fetchGraphqlClient = async () => {
@@ -14,16 +17,21 @@ const Services: React.FC = () => {
     }
     fetchGraphqlClient()
   }, [])
-  const { data, isLoading, isError, error } = useListAllServicesQuery(graphqlClient)
+
+  useEffect(() => {
+    if (data?.listAllServices.length) {
+      setCategorizedServices(groupBy(data.listAllServices, 'category'))
+    }
+  }, [data])
 
   return (
-    <Container fluid className="py-0">
-      {/* Hero – same padding and pattern as Home */}
+    <Container fluid className="py-0 site-page">
+      {/* Hero */}
       <Row className="mb-0">
-        <Col className="d-flex flex-row align-items-center justify-content-center py-5 px-3 px-md-4 px-lg-5">
-          <div className="d-flex flex-column text-center services-hero">
-            <h1 className="display-4 fw-bold mb-4 text-white">Our Services</h1>
-            <p className="lead mb-0 gray-2 fs-6">
+        <Col className="d-flex flex-row align-items-center justify-content-center page-hero-wrap px-3 px-md-4 px-lg-5">
+          <div className="d-flex flex-column text-center page-hero">
+            <h1 className="page-hero__title text-white">Our Services</h1>
+            <p className="page-hero__lead mb-0 gray-2">
               Comprehensive technology solutions tailored to your business needs.
               From concept to deployment, we're here to bring your ideas to life.
             </p>
@@ -36,7 +44,7 @@ const Services: React.FC = () => {
       </div>
 
       {/* Main content – same padding as Home */}
-      <div className="py-5 px-3 px-md-4 px-lg-5">
+      <div className="page-main px-3 px-md-4 px-lg-5">
         {/* Loading State */}
         {isLoading && (
           <Row className="justify-content-center">
@@ -62,64 +70,84 @@ const Services: React.FC = () => {
         )}
 
         {/* Services Grid */}
-        {data?.listAllServices && data.listAllServices.length > 0 && (
-          <Row className="section-fade-in">
-            {data.listAllServices
-              .filter(service => service.showOnMainSite !== false)
-              .map((service) => (
-                <Col lg={4} md={6} className="mb-4 card-stagger" key={service.id}>
-                  <Card className="h-100 text-white service-card">
-                    <Card.Header>
-                      <div className="d-flex justify-content-between align-items-center">
-                        <Card.Title className="mb-0">{service.name}</Card.Title>
-                        {service.category && (
-                          <Badge bg="primary" className="opacity-75">{service.category}</Badge>
-                        )}
-                      </div>
-                    </Card.Header>
-                    <Card.Body className="d-flex flex-column">
-                      <Card.Text className="mb-3 gray-2">{service.description}</Card.Text>
+        {!!categorizedServices && categorizedServices !== null && (
+          <div className="fade-in">
+            <div className="page-section-intro text-center mx-auto mb-4">
+              <p className="page-section-kicker mb-0">What we offer</p>
+              <h2 className="page-section-heading text-white">
+                Browse services by category
+              </h2>
+              <p className="page-section-lead gray-2 mb-0">
+                Each category groups related capabilities—from discovery and build to ongoing support. Open a
+                section to see offerings, timelines, and how we price engagements. When you&apos;re ready,
+                reach out and we&apos;ll shape a plan around your goals.
+              </p>
+            </div>
+            <Accordion>
+              {Object.entries(categorizedServices).map(([category, services], currIndex) => (
+                <Accordion.Item eventKey={`service-${currIndex}`} key={`service-cat-${currIndex}`}>
+                  <Accordion.Header>{category}</Accordion.Header>
+                  <Accordion.Body>
+                    <Row className="g-4">
+                      {services.map((prop, i) => (
+                        <Col lg={4} md={6} sm={12} key={prop.id} className="d-flex">
+                          <Card className="h-100 w-100 service-card service-card--catalog text-white shadow-sm">
+                            <Card.Header>
+                              <div className="d-flex justify-content-between align-items-center">
+                                <Card.Title className="mb-0 text-white">{prop.name}</Card.Title>
+                                {prop.category && (
+                                  <Badge bg="primary" className="opacity-75">{prop.category}</Badge>
+                                )}
+                              </div>
+                            </Card.Header>
+                            <Card.Body className="d-flex flex-column">
+                              <Card.Text className="mb-3 gray-2">{prop.description}</Card.Text>
 
-                      <ListGroup variant="flush" className="mb-3">
-                        {service.servicePillar && (
-                          <ListGroup.Item className="border-0 px-0">
-                            <i className="bi bi-layers-fill me-2" />
-                            <strong>Pillar:</strong> {service.servicePillar}
-                          </ListGroup.Item>
-                        )}
-                        {service.estimatedDuration && (
-                          <ListGroup.Item className="border-0 px-0">
-                            <i className="bi bi-clock-fill me-2" />
-                            <strong>Duration:</strong> {service.estimatedDuration}
-                          </ListGroup.Item>
-                        )}
-                        {service.pricingModel && (
-                          <ListGroup.Item className="border-0 px-0">
-                            <i className="bi bi-currency-dollar me-2" />
-                            <strong>Pricing:</strong> {service.pricingModel}
-                          </ListGroup.Item>
-                        )}
-                        {service.targetClient && service.targetClient.length > 0 && (
-                          <ListGroup.Item className="border-0 px-0">
-                            <i className="bi bi-people-fill me-2" />
-                            <strong>Target:</strong> {service.targetClient.join(', ')}
-                          </ListGroup.Item>
-                        )}
-                      </ListGroup>
+                              <ListGroup variant="flush" className="mb-3">
+                                {prop.servicePillar && (
+                                  <ListGroup.Item className="border-0 px-0 bg-transparent text-white">
+                                    <i className="bi bi-layers-fill me-2" />
+                                    <strong>Pillar:</strong> {prop.servicePillar}
+                                  </ListGroup.Item>
+                                )}
+                                {prop.estimatedDuration && (
+                                  <ListGroup.Item className="border-0 px-0 bg-transparent text-white">
+                                    <i className="bi bi-clock-fill me-2" />
+                                    <strong>Duration:</strong> {prop.estimatedDuration}
+                                  </ListGroup.Item>
+                                )}
+                                {prop.pricingModel && (
+                                  <ListGroup.Item className="border-0 px-0 bg-transparent text-white">
+                                    <i className="bi bi-currency-dollar me-2" />
+                                    <strong>Pricing:</strong> {prop.pricingModel}
+                                  </ListGroup.Item>
+                                )}
+                                {prop.targetClient && prop.targetClient.length > 0 && (
+                                  <ListGroup.Item className="border-0 px-0 bg-transparent text-white">
+                                    <i className="bi bi-people-fill me-2" />
+                                    <strong>Target:</strong> {prop.targetClient.join(', ')}
+                                  </ListGroup.Item>
+                                )}
+                              </ListGroup>
 
-                      <div className="mt-auto">
-                        {service.price && (
-                          <h5 className="text-white mb-3">${service.price}</h5>
-                        )}
-                        <Button variant="primary" as={Link as any} to="/contact" className="w-100">
-                          Get Started
-                        </Button>
-                      </div>
-                    </Card.Body>
-                  </Card>
-                </Col>
+                              <div className="mt-auto">
+                                {prop.price !== undefined && prop.price !== null && (
+                                  <h5 className="text-white mb-3">{String(prop.price)}</h5>
+                                )}
+                                <Link className="btn btn-primary w-100" to="/contact">
+                                  Get Started
+                                </Link>
+                              </div>
+                            </Card.Body>
+                          </Card>
+                        </Col>
+                      ))}
+                    </Row>
+                  </Accordion.Body>
+                </Accordion.Item>
               ))}
-          </Row>
+            </Accordion>
+          </div>
         )}
 
         {/* No Services State */}
@@ -138,20 +166,20 @@ const Services: React.FC = () => {
           <span className="section-break__diamond" />
         </div>
 
-        {/* CTA – match Home */}
-        <Row className="mb-0 section-fade-in">
+        {/* CTA — same scale as catalog intro */}
+        <Row className="mb-0 section-fade-in page-cta-row">
           <Col lg={8} className="mx-auto text-center">
-            <h2 className="display-5 fw-bold mb-3 text-white">Ready to Get Started?</h2>
-            <p className="lead gray-2 mb-4">
+            <h2 className="page-section-heading text-white">Ready to Get Started?</h2>
+            <p className="page-section-lead gray-2 mb-3">
               Let's discuss your project requirements and find the perfect solution for your business.
             </p>
             <div className="d-flex flex-column flex-md-row gap-3 justify-content-center">
-              <Button variant="primary" size="lg" as={Link as any} to="/contact">
+              <Link className="btn btn-primary btn-lg" to="/contact">
                 Schedule a Consultation
-              </Button>
-              <Button variant="outline-light" size="lg" as={Link as any} to="/about" className="cta-btn-secondary">
+              </Link>
+              <Link className="btn btn-outline-light btn-lg cta-btn-secondary" to="/about">
                 Learn About Us
-              </Button>
+              </Link>
             </div>
           </Col>
         </Row>

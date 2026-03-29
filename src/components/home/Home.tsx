@@ -1,24 +1,24 @@
 import React from 'react'
-import { Container, Row, Col, Card, Button } from 'react-bootstrap'
+import { Container, Row, Col, Card } from 'react-bootstrap'
 import { Code2, Settings, Cloud, Lock, Check } from 'lucide-react'
 import './home.scss'
 import { Link } from 'react-router-dom'
 
 const Home: React.FC = () => {
   return (
-    <Container fluid className="py-0">
-      {/* Header / Hero - same pattern as Contact header */}
+    <Container fluid className="py-0 site-page home-page">
+      {/* Hero */}
       <Row className="mb-0">
-        <Col className="d-flex flex-row align-items-center justify-content-center py-5 px-3 px-md-4 px-lg-5">
-          <div className="d-flex flex-column">
-            <h1 className="display-4 fw-bold mb-4 text-white hero-text">Your Small Business IT Heroes</h1>
-            <p className="lead mb-4 gray-2 fs-6 hero-subtitle">
+        <Col className="d-flex flex-row align-items-center justify-content-center page-hero-wrap px-3 px-md-4 px-lg-5">
+          <div className="d-flex flex-column page-hero page-hero--start">
+            <h1 className="page-hero__title text-white hero-text">Your Small Business IT Heroes</h1>
+            <p className="page-hero__lead gray-2 hero-subtitle mb-4">
               We turn your wildest tech dreams into reality. No jargon, no BS—just awesome solutions that actually work.
             </p>
             <div className="hero-button">
-              <Button variant="primary" size="lg" as={Link as any} to="/about">
+              <Link className="btn btn-primary btn-lg" to="/about">
                 See What We've Built
-              </Button>
+              </Link>
             </div>
           </div>
         </Col>
@@ -28,12 +28,12 @@ const Home: React.FC = () => {
         <span className="section-break__diamond" />
       </div>
 
-      {/* Main content: one wrapper with consistent padding (Contact-style) */}
-      <div className="home-sections py-5 px-3 px-md-4 px-lg-5">
+      <div className="page-main px-3 px-md-4 px-lg-5">
         {/* Features Section */}
-        <Row className="mb-5 section-fade-in">
+        <Row className="mb-4 section-fade-in">
           <Col lg={12}>
-            <h2 className="display-5 fw-bold text-start text-white mb-4">What We're Awesome At</h2>
+            <p className="page-section-kicker mb-0">Capabilities</p>
+            <h2 className="page-section-heading text-start text-white mb-4">What We&apos;re Awesome At</h2>
           </Col>
           <Col lg={3} className="mb-4 card-stagger">
             <Card className="h-100 text-white service-card">
@@ -94,10 +94,10 @@ const Home: React.FC = () => {
         </div>
 
         {/* About Preview Section */}
-        <Row className="mb-5 section-fade-in">
+        <Row className="mb-4 section-fade-in">
           <Col lg={6} className="mx-auto text-start text-white">
-            <h2 className="display-5 fw-bold mb-4 text-white">We Get It. Tech Can Be Overwhelming.</h2>
-            <p className="lead gray-2 fs-6">
+            <h2 className="page-section-heading mb-3 text-white">We Get It. Tech Can Be Overwhelming.</h2>
+            <p className="page-section-lead page-section-lead--start gray-2 mb-0">
               That's why we're here. We've been doing this for years, and we've seen it all. Whether you need a simple website,
               a complex app, or someone to fix your printer at 3am (okay, maybe not 3am, but close), we've got your back.
               No tech-speak, no runaround—just real solutions that work.
@@ -105,7 +105,7 @@ const Home: React.FC = () => {
           </Col>
           <Col lg={6} className="d-none d-lg-block text-white why-byteverse">
             <h2 className="mb-3 text-uppercase">Why Byteverse?</h2>
-            <ul className="lead">
+            <ul className="why-byteverse-list mb-0">
               <li><Check size={20} strokeWidth={2.5} className="why-byteverse-check me-2" /> We speak human, not robot</li>
               <li><Check size={20} strokeWidth={2.5} className="why-byteverse-check me-2" /> Fast, friendly, and actually helpful</li>
               <li><Check size={20} strokeWidth={2.5} className="why-byteverse-check me-2" /> We've helped tons of businesses succeed</li>
@@ -119,10 +119,11 @@ const Home: React.FC = () => {
         </div>
 
         {/* How We Work Section */}
-        <Row className="mb-5 section-fade-in">
-          <Col lg={12} className="text-center mb-4">
-            <h2 className="display-5 fw-bold text-white mb-3">How We Work</h2>
-            <p className="lead gray-2 mb-5">Simple process, awesome results</p>
+        <Row className="mb-4 section-fade-in">
+          <Col lg={12} className="text-center mb-3">
+            <p className="page-section-kicker mb-0">Process</p>
+            <h2 className="page-section-heading text-white mb-2">How We Work</h2>
+            <p className="page-section-lead gray-2 mb-4">Simple process, awesome results</p>
           </Col>
           <Col md={3} className="mb-4 mb-md-0 how-we-work-item">
             <div className="step-number">1</div>
@@ -159,19 +160,19 @@ const Home: React.FC = () => {
         </div>
 
         {/* Final CTA Section */}
-        <Row className="mb-0 section-fade-in">
+        <Row className="mb-0 section-fade-in page-cta-row">
           <Col lg={8} className="mx-auto text-center">
-            <h2 className="display-5 fw-bold mb-3 text-white">Ready to Level Up Your Business?</h2>
-            <p className="lead gray-2 mb-4">
+            <h2 className="page-section-heading text-white">Ready to Level Up Your Business?</h2>
+            <p className="page-section-lead gray-2 mb-3">
               Let's chat about how we can help you crush your goals. No pressure, just a friendly conversation about your tech needs.
             </p>
             <div className="d-flex flex-column flex-md-row gap-3 justify-content-center">
-              <Button variant="primary" size="lg" as={Link as any} to="/contact">
+              <Link className="btn btn-primary btn-lg" to="/contact">
                 Get Started Today
-              </Button>
-              <Button variant="outline-light" size="lg" as={Link as any} to="/services" className="cta-btn-secondary">
+              </Link>
+              <Link className="btn btn-outline-light btn-lg cta-btn-secondary" to="/services">
                 See Our Services
-              </Button>
+              </Link>
             </div>
           </Col>
         </Row>
