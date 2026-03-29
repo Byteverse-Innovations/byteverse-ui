@@ -2,9 +2,50 @@ import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Card, Button, Table, Spinner, Alert } from 'react-bootstrap'
 import { getQuoteByToken, acceptQuote } from '../../api/quote-portal-api'
-import type { Quote } from '../../api/admin-api'
+import type { LineItem, Quote } from '../../api/admin-api'
+import { lineItemPayableAmount, quoteDisplayTotal, lineItemTitleDescriptionParts } from '../../lib/quote-display'
 import logoMark from '../../assets/icon-only-transparent-no-buffer.png'
 import './QuotePortal.scss'
+
+function LineItemTableRows({ items, depth = 0 }: { items: LineItem[]; depth?: number }) {
+  return (
+    <>
+      {items.map((item) => {
+        const children = item.subLineItems ?? []
+        const hasChildren = children.length > 0
+        const isSubLine = depth > 0
+        const rateCell = isSubLine ? '-' : `$${item.unitPrice.toFixed(2)}`
+        const qtyCell = isSubLine ? '-' : String(item.quantity)
+        const amtCell = isSubLine ? '-' : `$${lineItemPayableAmount(item).toFixed(2)}`
+        const { title, description } = lineItemTitleDescriptionParts(item)
+        return (
+          <React.Fragment key={item.id}>
+            <tr>
+              <td className="quote-line-item-desc-cell" style={{ paddingLeft: `${depth * 1.15}rem` }}>
+                {title ? (
+                  <>
+                    <div className="quote-line-item-desc__title">{title}</div>
+                    {description ? (
+                      <div className="quote-line-item-desc__detail">{description}</div>
+                    ) : null}
+                  </>
+                ) : (
+                  <div className="quote-line-item-desc__title quote-line-item-desc__title--solo">
+                    {description || '—'}
+                  </div>
+                )}
+              </td>
+              <td className="quote-line-items-table__num">{rateCell}</td>
+              <td className="quote-line-items-table__num">{qtyCell}</td>
+              <td className="quote-line-items-table__num">{amtCell}</td>
+            </tr>
+            {hasChildren ? <LineItemTableRows items={children} depth={depth + 1} /> : null}
+          </React.Fragment>
+        )
+      })}
+    </>
+  )
+}
 
 export default function QuotePortal() {
   const { token } = useParams<{ token: string }>()
@@ -93,6 +134,8 @@ export default function QuotePortal() {
 
   if (!quote) return null
 
+  const displayTotal = quoteDisplayTotal(quote.lineItems, quote.total)
+
   return (
     <div className="quote-portal container py-5">
       {error && (
@@ -114,27 +157,20 @@ export default function QuotePortal() {
             Client: <strong className="text-white">{quote.clientName}</strong> ({quote.clientEmail})
           </p>
           <p className="text-white-50 mb-3">Status: {quote.status}</p>
-          <Table size="sm" className="text-white mb-4">
+          <Table size="sm" className="text-white mb-4 quote-line-items-table">
             <thead>
               <tr>
                 <th>Description</th>
-                <th>Qty</th>
-                <th>Unit price</th>
-                <th>Amount</th>
+                <th className="quote-line-items-table__num">Rate</th>
+                <th className="quote-line-items-table__num">Qty</th>
+                <th className="quote-line-items-table__num">Amount</th>
               </tr>
             </thead>
             <tbody>
-              {(quote.lineItems ?? []).map((item, idx) => (
-                <tr key={idx}>
-                  <td>{item.description}</td>
-                  <td>{item.quantity}</td>
-                  <td>${item.unitPrice.toFixed(2)}</td>
-                  <td>${item.amount.toFixed(2)}</td>
-                </tr>
-              ))}
+              <LineItemTableRows items={quote.lineItems ?? []} />
             </tbody>
           </Table>
-          <p className="fw-bold text-white">Total: ${(quote.total ?? 0).toFixed(2)}</p>
+          <p className="fw-bold text-white">Total: ${displayTotal.toFixed(2)}</p>
           {quote.status === 'SENT' && (
             <div className="d-flex gap-2 mt-3">
               <Button

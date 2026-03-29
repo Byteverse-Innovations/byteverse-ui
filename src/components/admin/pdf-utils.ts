@@ -1,136 +1,111 @@
+import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
-import type { Quote, Invoice, LineItem } from '../../api/admin-api'
-import logoSrc from '../../assets/icon-only-transparent-no-buffer.png'
+import type { Quote, Invoice } from '../../api/admin-api'
+import { buildInvoicePrintHtml, buildQuotePrintHtml } from '../../lib/quote-print-html'
 
-async function loadImageDataUrl(url: string): Promise<string> {
-  const res = await fetch(url)
-  const blob = await res.blob()
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onloadend = () => resolve(reader.result as string)
-    reader.onerror = reject
-    reader.readAsDataURL(blob)
+const CHART_POLL_MS = 200
+const CHART_MAX_WAIT_MS = 90_000
+/** Match Puppeteer sleep in ms-billing render (~5500ms) for Google Charts + axis labels. */
+const POST_CHART_SETTLE_MS = 5800
+
+function addCanvasToPdfPaged(pdf: jsPDF, canvas: HTMLCanvasElement) {
+  const margin = 14
+  const pageW = pdf.internal.pageSize.getWidth()
+  const pageH = pdf.internal.pageSize.getHeight()
+  const contentW = pageW - margin * 2
+  const contentH = pageH - margin * 2
+  const imgHmm = (canvas.height * contentW) / canvas.width
+  let mmDone = 0
+  let pageIndex = 0
+  while (mmDone < imgHmm - 0.01) {
+    if (pageIndex > 0) pdf.addPage()
+    const mmThisPage = Math.min(contentH, imgHmm - mmDone)
+    const srcY = (mmDone / imgHmm) * canvas.height
+    const srcH = (mmThisPage / imgHmm) * canvas.height
+    const slice = document.createElement('canvas')
+    slice.width = canvas.width
+    slice.height = Math.max(1, Math.ceil(srcH))
+    const ctx = slice.getContext('2d')
+    if (!ctx) throw new Error('Could not get canvas context')
+    ctx.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH)
+    pdf.addImage(slice.toDataURL('image/png'), 'PNG', margin, margin, contentW, mmThisPage)
+    mmDone += mmThisPage
+    pageIndex++
+  }
+}
+
+async function waitForTimelineRendered(doc: Document): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const t0 = Date.now()
+    const iv = window.setInterval(() => {
+      if (Date.now() - t0 > CHART_MAX_WAIT_MS) {
+        window.clearInterval(iv)
+        reject(new Error('Timed out waiting for timeline chart'))
+        return
+      }
+      const chartEl = doc.getElementById('timeline-chart')
+      if (!chartEl) {
+        window.clearInterval(iv)
+        resolve()
+        return
+      }
+      const text = chartEl.textContent ?? ''
+      const noRows = text.includes('No timeline events')
+      const hasSvg = chartEl.querySelector('svg') != null
+      if (noRows || hasSvg) {
+        window.clearInterval(iv)
+        window.setTimeout(resolve, POST_CHART_SETTLE_MS)
+      }
+    }, CHART_POLL_MS)
   })
 }
 
-function addLineItems(doc: jsPDF, lineItems: LineItem[], startY: number): number {
-  let y = startY
-  doc.setFontSize(10)
-  lineItems.forEach((item) => {
-    doc.text(item.description, 14, y, { maxWidth: 100 })
-    doc.text(String(item.quantity), 120, y)
-    doc.text(item.unitPrice.toFixed(2), 140, y)
-    doc.text(item.amount.toFixed(2), 170, y)
-    y += 6
-  })
-  return y
+async function renderPrintHtmlToPdfFile(html: string, filename: string): Promise<void> {
+  const iframe = document.createElement('iframe')
+  iframe.style.cssText =
+    'position:fixed;left:-12000px;top:0;width:1200px;height:8000px;border:0;opacity:0;pointer-events:none'
+  document.body.appendChild(iframe)
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const timer = window.setTimeout(() => reject(new Error('iframe load timeout')), 75_000)
+      iframe.onload = () => {
+        window.clearTimeout(timer)
+        resolve()
+      }
+      iframe.srcdoc = html
+    })
+
+    const idoc = iframe.contentDocument
+    if (!idoc?.body) throw new Error('Print iframe has no document')
+
+    await waitForTimelineRendered(idoc)
+
+    const body = idoc.body
+    const canvas = await html2canvas(body, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      width: body.scrollWidth,
+      height: body.scrollHeight,
+      windowWidth: body.scrollWidth,
+      windowHeight: body.scrollHeight,
+    })
+
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
+    addCanvasToPdfPaged(pdf, canvas)
+    pdf.save(filename)
+  } finally {
+    iframe.remove()
+  }
 }
 
 export async function downloadQuotePdf(quote: Quote, filename?: string) {
-  const doc = new jsPDF()
-  const logoDataUrl = await loadImageDataUrl(logoSrc)
-  doc.addImage(logoDataUrl, 'PNG', 14, 10, 12, 12)
-  doc.setFontSize(11)
-  doc.setTextColor(9, 86, 190)
-  doc.text('Byteverse', 29, 16)
-  doc.setTextColor(17, 17, 17)
-  doc.setFontSize(17)
-  doc.text('Quote', 29, 23)
-  doc.setFontSize(9)
-  doc.setTextColor(85, 85, 85)
-  doc.text('reach@byteverseinnov.com', 29, 28)
-  doc.setTextColor(0, 0, 0)
-  doc.setFontSize(10)
-  doc.text(`Client: ${quote.clientName}`, 14, 38)
-  doc.text(`Email: ${quote.clientEmail}`, 14, 44)
-  doc.text(`Status: ${quote.status}`, 14, 50)
-  doc.text(`Date: ${quote.createdAt ?? '—'}`, 14, 56)
-  let y = 66
-  doc.setFontSize(11)
-  doc.text('Line items', 14, y)
-  y += 8
-  doc.setFontSize(9)
-  doc.text('Description', 14, y)
-  doc.text('Qty', 120, y)
-  doc.text('Unit price', 140, y)
-  doc.text('Amount', 170, y)
-  y += 6
-  y = addLineItems(doc, quote.lineItems ?? [], y)
-  y += 6
-  doc.setFontSize(11)
-  doc.text(`Total: $${(quote.total ?? 0).toFixed(2)}`, 14, y)
-  y += 8
-  const events = quote.timelineEvents?.filter((e) => e.chartLabel) ?? []
-  if (events.length > 0) {
-    if (y > 250) {
-      doc.addPage()
-      y = 20
-    }
-    doc.setFontSize(11)
-    doc.text('Timeline & scope', 14, y)
-    y += 7
-    doc.setFontSize(9)
-    for (const ev of events) {
-      const head = `${ev.chartLabel} (${ev.startDate?.slice(0, 10) ?? '—'} → ${ev.endDate?.slice(0, 10) ?? '—'})`
-      const lines = doc.splitTextToSize(head, 180)
-      doc.text(lines, 14, y)
-      y += lines.length * 5 + 1
-      if (ev.description?.trim()) {
-        const body = doc.splitTextToSize(ev.description.trim(), 176)
-        doc.text(body, 18, y)
-        y += body.length * 4 + 4
-      }
-      if (y > 270) {
-        doc.addPage()
-        y = 20
-      }
-    }
-  }
-  if (quote.quoteAssetsPrefix) {
-    if (y > 260) {
-      doc.addPage()
-      y = 20
-    }
-    doc.setFontSize(9)
-    doc.setTextColor(80)
-    doc.text(`Client package (S3): ${quote.quoteAssetsPrefix}`, 14, y)
-    doc.setTextColor(0)
-  }
-  const year = new Date().getFullYear()
-  if (y > 280) {
-    doc.addPage()
-    y = 20
-  }
-  doc.setFontSize(8)
-  doc.setTextColor(100)
-  doc.text(`© ${year} Byteverse. All rights reserved.`, 14, 288)
-  doc.setTextColor(0)
-  doc.save(filename ?? `quote-${quote.id}.pdf`)
+  const html = buildQuotePrintHtml(quote)
+  await renderPrintHtmlToPdfFile(html, filename ?? `quote-${quote.id}.pdf`)
 }
 
-export function downloadInvoicePdf(invoice: Invoice, filename?: string) {
-  const doc = new jsPDF()
-  doc.setFontSize(18)
-  doc.text('Invoice', 14, 20)
-  doc.setFontSize(10)
-  doc.text(`Client: ${invoice.clientName}`, 14, 28)
-  doc.text(`Email: ${invoice.clientEmail}`, 14, 34)
-  doc.text(`Status: ${invoice.status}`, 14, 40)
-  doc.text(`Due: ${invoice.dueDate ?? '—'}`, 14, 46)
-  doc.text(`Paid: ${invoice.paidAt ?? '—'}`, 14, 52)
-  let y = 62
-  doc.setFontSize(11)
-  doc.text('Line items', 14, y)
-  y += 8
-  doc.setFontSize(9)
-  doc.text('Description', 14, y)
-  doc.text('Qty', 120, y)
-  doc.text('Unit price', 140, y)
-  doc.text('Amount', 170, y)
-  y += 6
-  y = addLineItems(doc, invoice.lineItems ?? [], y)
-  y += 6
-  doc.setFontSize(11)
-  doc.text(`Total: $${(invoice.total ?? 0).toFixed(2)}`, 14, y)
-  doc.save(filename ?? `invoice-${invoice.id}.pdf`)
+export async function downloadInvoicePdf(invoice: Invoice, filename?: string) {
+  const html = buildInvoicePrintHtml(invoice)
+  await renderPrintHtmlToPdfFile(html, filename ?? `invoice-${invoice.id}.pdf`)
 }

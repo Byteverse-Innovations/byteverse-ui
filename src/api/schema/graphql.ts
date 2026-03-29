@@ -109,6 +109,8 @@ export type LineItem = {
   id: Scalars['ID']['output'];
   quantity: Scalars['Float']['output'];
   serviceId?: Maybe<Scalars['ID']['output']>;
+  subLineItems: Array<LineItem>;
+  title?: Maybe<Scalars['String']['output']>;
   unitPrice: Scalars['Float']['output'];
 };
 
@@ -118,6 +120,8 @@ export type LineItemInput = {
   id?: InputMaybe<Scalars['ID']['input']>;
   quantity: Scalars['Float']['input'];
   serviceId?: InputMaybe<Scalars['ID']['input']>;
+  subLineItems?: InputMaybe<Array<LineItemInput>>;
+  title?: InputMaybe<Scalars['String']['input']>;
   unitPrice: Scalars['Float']['input'];
 };
 

@@ -2,11 +2,13 @@ import { requestWithAuth } from './clients'
 
 export type LineItem = {
   id: string
+  title?: string | null
   description: string
   quantity: number
   unitPrice: number
   amount: number
   serviceId?: string | null
+  subLineItems?: LineItem[]
 }
 export type TimelineEvent = {
   id: string
@@ -60,14 +62,28 @@ export type Invoice = {
   quoteAssetsPrefix?: string | null
 }
 
+const LINEITEM_SELECTION = `
+  id title description quantity unitPrice amount serviceId
+  subLineItems {
+    id title description quantity unitPrice amount serviceId
+    subLineItems {
+      id title description quantity unitPrice amount serviceId
+      subLineItems {
+        id title description quantity unitPrice amount serviceId
+        subLineItems { id title description quantity unitPrice amount serviceId }
+      }
+    }
+  }
+`
+
 const QUOTE_SELECTION = `
   id clientName clientEmail status total token quoteAssetsPrefix createdAt updatedAt
-  lineItems { id description quantity unitPrice amount serviceId }
+  lineItems { ${LINEITEM_SELECTION} }
   timelineEvents { id chartLabel description startDate endDate lineItemId sortOrder }
 `
 const INVOICE_SELECTION = `
   id quoteId clientName clientEmail status total dueDate paidAt createdAt updatedAt quoteAssetsPrefix
-  lineItems { id description quantity unitPrice amount serviceId }
+  lineItems { ${LINEITEM_SELECTION} }
   timelineEvents { id chartLabel description startDate endDate lineItemId sortOrder }
 `
 

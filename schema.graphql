@@ -16,11 +16,13 @@ type Service {
 
 type LineItem {
   id: ID!
+  title: String
   description: String!
   quantity: Float!
   unitPrice: Float!
   amount: Float!
   serviceId: ID
+  subLineItems: [LineItem!]!
 }
 
 type TimelineEvent {
@@ -155,11 +157,13 @@ type QuoteClientPackageDownload @aws_cognito_user_pools {
 
 input LineItemInput {
   id: ID
+  title: String
   description: String!
   quantity: Float!
   unitPrice: Float!
   amount: Float!
   serviceId: ID
+  subLineItems: [LineItemInput!]
 }
 
 input TimelineEventInput {
