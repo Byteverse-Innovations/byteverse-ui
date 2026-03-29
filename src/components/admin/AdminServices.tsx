@@ -14,7 +14,8 @@ export default function AdminServices() {
   const [error, setError] = useState<string | null>(null)
   const [trackJobId, setTrackJobId] = useState<string | null>(null)
 
-  const { data: services = [], isLoading } = useListAllServicesQuery(graphqlClient)
+  const { data: listServicesData, isLoading } = useListAllServicesQuery(graphqlClient)
+  const services = listServicesData?.listAllServices ?? []
 
   const { data: notionStatus } = useQuery({
     queryKey: ['notionIntegrationStatus'],
@@ -188,7 +189,7 @@ export default function AdminServices() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(services as any).listAllServices?.map((s: any) => (
+                  {services.map((s) => (
                     <tr key={s.id}>
                       <td>{s.name}</td>
                       <td className="text-white-50">{(s.description ?? '').slice(0, 60)}…</td>
