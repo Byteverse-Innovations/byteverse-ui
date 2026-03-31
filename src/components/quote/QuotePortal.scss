@@ -78,6 +78,8 @@
   font-weight: 600;
   color: rgba(255, 255, 255, 0.98);
   line-height: 1.35;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
 .quote-line-item-desc__title--solo {
@@ -90,4 +92,6 @@
   font-weight: 400;
   color: rgba(255, 255, 255, 0.7);
   line-height: 1.38;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }

@@ -52,20 +52,21 @@ export function quoteLineItemsSubtotal(items: LineItem[]): number {
   return items.reduce((s, li) => s + lineItemPayableAmount(li), 0)
 }
 
-/** Trimmed title and description for layout (e.g. title row + smaller detail row). */
+/** Title trimmed; description normalized (CRLF → LF) and not trimmed so newlines / spacing print as entered. */
 export function lineItemTitleDescriptionParts(li: LineItem): { title: string; description: string } {
   return {
     title: (li.title ?? '').trim(),
-    description: (li.description ?? '').trim(),
+    description: String(li.description ?? '').replace(/\r\n/g, '\n'),
   }
 }
 
 /** Plain-text fallback (e.g. single-field copy); newline between title and description. */
 export function formatLineItemTitleDescription(li: LineItem): string {
   const { title, description } = lineItemTitleDescriptionParts(li)
-  if (title && description) return `${title}\n${description}`
+  const hasDesc = description.trim().length > 0
+  if (title && hasDesc) return `${title}\n${description}`
   if (title) return title
-  return description || '—'
+  return hasDesc ? description : '—'
 }
 
 /** Prefer stored quote total when present; otherwise sum top-level payable line amounts. */
@@ -75,4 +76,16 @@ export function quoteDisplayTotal(lineItems: LineItem[] | undefined | null, stor
   const sub = quoteLineItemsSubtotal(items)
   if (!Number.isNaN(st) && st > 0) return st
   return sub
+}
+
+/** Client PDF / printable HTML: `$3,500.00` with grouping (en-US). */
+export function formatUsdForClientDocument(amount: number): string {
+  const n = Number(amount)
+  if (!Number.isFinite(n)) return '$0.00'
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n)
 }

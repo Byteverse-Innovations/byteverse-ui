@@ -18,6 +18,7 @@ function LineItemTableRows({ items, depth = 0 }: { items: LineItem[]; depth?: nu
         const qtyCell = isSubLine ? '-' : String(item.quantity)
         const amtCell = isSubLine ? '-' : `$${lineItemPayableAmount(item).toFixed(2)}`
         const { title, description } = lineItemTitleDescriptionParts(item)
+        const hasDesc = description.trim().length > 0
         return (
           <React.Fragment key={item.id}>
             <tr>
@@ -25,13 +26,13 @@ function LineItemTableRows({ items, depth = 0 }: { items: LineItem[]; depth?: nu
                 {title ? (
                   <>
                     <div className="quote-line-item-desc__title">{title}</div>
-                    {description ? (
+                    {hasDesc ? (
                       <div className="quote-line-item-desc__detail">{description}</div>
                     ) : null}
                   </>
                 ) : (
                   <div className="quote-line-item-desc__title quote-line-item-desc__title--solo">
-                    {description || '—'}
+                    {hasDesc ? description : '—'}
                   </div>
                 )}
               </td>

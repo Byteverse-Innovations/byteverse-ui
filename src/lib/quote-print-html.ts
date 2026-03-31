@@ -6,6 +6,7 @@ import type { Invoice, LineItem, Quote, TimelineEvent } from '../api/admin-api'
 import {
   eventRangeLabelForClient,
   formatClientFacingDate,
+  formatUsdForClientDocument,
   lineItemPayableAmount,
   quoteDisplayTotal,
   timelineDaySpanLabel,
@@ -38,9 +39,14 @@ function collectDescendantLineIds(li: LineItem): Set<string> {
   return ids
 }
 
+/** Single-line summary for narrative headings (detail body uses pre-wrap in the table). */
+function lineItemHeadingSummary(s: string): string {
+  return s.replace(/\r\n/g, '\n').replace(/\n/g, ' ').trim()
+}
+
 function lineDeliverableLabel(l: LineItem): string {
-  const t = (l.title ?? '').trim()
-  const d = (l.description ?? '').trim()
+  const t = lineItemHeadingSummary(l.title ?? '')
+  const d = lineItemHeadingSummary(l.description ?? '')
   if (t && d) return `${t} — ${d}`
   return t || d || 'Deliverable'
 }
@@ -64,7 +70,7 @@ function buildNarrativeHtml(lineItems: LineItem[], evs: TimelineEvent[]): string
     const tevents = evs.filter((e) => e.lineItemId != null && allowed.has(e.lineItemId))
     if (tevents.length === 0) continue
     const parts: string[] = []
-    parts.push(`$${lineItemPayableAmount(line).toFixed(2)}`)
+    parts.push(formatUsdForClientDocument(lineItemPayableAmount(line)))
     for (const e of sortedEvents(tevents)) {
       parts.push(`\n• ${e.chartLabel} (${eventRangeLabelForClient(e)})`)
       if (e.description?.trim()) parts.push(`\n${e.description.trim()}`)
@@ -91,9 +97,9 @@ function buildLineItemRowsHtml(items: LineItem[], depth: number): string {
       const hasChildren = children.length > 0
       const padRem = depth * 1.15
       const isSubLine = depth > 0
-      const rateCell = isSubLine ? '-' : `$${l.unitPrice.toFixed(2)}`
+      const rateCell = isSubLine ? '-' : formatUsdForClientDocument(Number(l.unitPrice) || 0)
       const qtyCell = isSubLine ? '-' : String(l.quantity)
-      const amtCell = isSubLine ? '-' : `$${lineItemPayableAmount(l).toFixed(2)}`
+      const amtCell = isSubLine ? '-' : formatUsdForClientDocument(lineItemPayableAmount(l))
       const row = `<tr class="line-item-row">
         <td class="col-desc" style="padding-left:${padRem}rem">${lineItemDescCellHtml(l)}</td>
         <td class="col-num">${rateCell}</td>
@@ -108,12 +114,13 @@ function buildLineItemRowsHtml(items: LineItem[], depth: number): string {
 
 function lineItemDescCellHtml(l: LineItem): string {
   const title = (l.title ?? '').trim()
-  const desc = (l.description ?? '').trim()
-  if (title && desc) {
-    return `<div class="line-item-desc"><div class="line-item-desc-title">${escapeHtml(title)}</div><div class="line-item-desc-detail">${escapeHtml(desc)}</div></div>`
+  const rawDesc = String(l.description ?? '').replace(/\r\n/g, '\n')
+  const hasDesc = rawDesc.trim().length > 0
+  if (title && hasDesc) {
+    return `<div class="line-item-desc"><div class="line-item-desc-title">${escapeHtml(title)}</div><div class="line-item-desc-detail">${escapeHtml(rawDesc)}</div></div>`
   }
   if (title) return `<div class="line-item-desc"><div class="line-item-desc-title">${escapeHtml(title)}</div></div>`
-  return `<div class="line-item-desc"><div class="line-item-desc-detail line-item-desc-detail--solo">${escapeHtml(desc || '—')}</div></div>`
+  return `<div class="line-item-desc"><div class="line-item-desc-detail line-item-desc-detail--solo">${escapeHtml(hasDesc ? rawDesc : '—')}</div></div>`
 }
 
 function timelineRowsJson(evs: TimelineEvent[]): string {
@@ -154,7 +161,7 @@ function timelineChartDrawScript(rowsJson: string): string {
       dataTable.addRows(dataRows);
       var options = {
         height: 460,
-        width: 900,
+        width: 746,
         hAxis: {
           format: 'MMM d, yyyy'
         },
@@ -166,7 +173,8 @@ function timelineChartDrawScript(rowsJson: string): string {
 }
 
 const PRINT_BODY_STYLES = `
-    body { font-family: 'Segoe UI', system-ui, sans-serif; color: #111; margin: 24px; line-height: 1.45; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; color: #111; margin: 0; padding: 0; line-height: 1.45; overflow-x: hidden; }
+    .bv-print-main { padding: 0 24px 24px; max-width: 794px; box-sizing: border-box; }
     h2 { font-size: 1.15rem; margin: 1.25rem 0 0.5rem; }
     .meta { color: #444; margin-bottom: 1.5rem; }
     table.line-items { border-collapse: collapse; width: 100%; margin: 1.25rem 0 2rem; font-size: 0.9rem; }
@@ -179,10 +187,10 @@ const PRINT_BODY_STYLES = `
     table.line-items tbody td { padding: 10px 8px 10px 0; border-bottom: 1px solid #e5e5e5; vertical-align: top; }
     table.line-items tbody td.col-num { text-align: right; white-space: nowrap; }
     table.line-items .col-desc { text-align: left; }
-    .line-item-desc-title { font-weight: 700; font-size: 1em; line-height: 1.35; display: block; }
-    .line-item-desc-detail { font-size: 0.78em; color: #444; margin-top: 0.22rem; line-height: 1.38; display: block; font-weight: 400; }
-    .line-item-desc-detail--solo { margin-top: 0; font-size: 0.95em; color: #111; }
-    #timeline-chart { min-height: 400px; width: 100%; max-width: 920px; margin: 1.5rem 0; }
+    .line-item-desc-title { font-weight: 700; font-size: 1em; line-height: 1.35; display: block; white-space: pre-wrap; overflow-wrap: break-word; }
+    .line-item-desc-detail { font-size: 0.78em; color: #444; margin-top: 0.22rem; line-height: 1.38; display: block; font-weight: 400; white-space: pre-wrap; overflow-wrap: break-word; }
+    .line-item-desc-detail--solo { margin-top: 0; font-size: 0.95em; color: #111; white-space: pre-wrap; overflow-wrap: break-word; }
+    #timeline-chart { min-height: 400px; width: 100%; max-width: 100%; margin: 1.5rem 0; box-sizing: border-box; }
     .narrative-block { margin-top: 1.5rem; page-break-inside: avoid; }
     .narrative-block h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
     .narrative-body { white-space: pre-wrap; font-size: 0.88rem; color: #222; }
@@ -206,13 +214,15 @@ function wrapPrintDocument(innerBody: string, rowsJson: string, narrativeHtml: s
 </head>
 <body>
   ${quoteClientBrandHeaderHtml(escapeHtml(docTitle))}
-  ${innerBody}
-  <h2>Timeline</h2>
-  <div id="timeline-chart"></div>
-  <h2>Scope &amp; milestones</h2>
-  ${narrativeHtml}
-  ${timelineChartDrawScript(rowsJson)}
-  ${quoteClientFooterHtml()}
+  <div class="bv-print-main">
+    ${innerBody}
+    <h2>Timeline</h2>
+    <div id="timeline-chart"></div>
+    <h2>Scope &amp; milestones</h2>
+    ${narrativeHtml}
+    ${timelineChartDrawScript(rowsJson)}
+    ${quoteClientFooterHtml()}
+  </div>
 </body>
 </html>`
 }
@@ -234,10 +244,10 @@ export function buildQuotePrintHtml(quote: Quote): string {
     <tbody>${lineRows}</tbody>
   </table>
   <div class="totals-block">
-    <div class="totals-row"><span>TOTAL</span><span>$${displayTotal.toFixed(2)}</span></div>
+    <div class="totals-row"><span>TOTAL</span><span>${formatUsdForClientDocument(displayTotal)}</span></div>
     <hr/>
     <div class="balance-label">BALANCE DUE</div>
-    <div class="balance-amt">USD $${displayTotal.toFixed(2)}</div>
+    <div class="balance-amt">${formatUsdForClientDocument(displayTotal)}</div>
   </div>`
 
   return wrapPrintDocument(meta, rowsJson, narrativeHtml, 'Quote')
@@ -263,10 +273,10 @@ export function buildInvoicePrintHtml(invoice: Invoice): string {
     <tbody>${lineRows}</tbody>
   </table>
   <div class="totals-block">
-    <div class="totals-row"><span>TOTAL</span><span>$${displayTotal.toFixed(2)}</span></div>
+    <div class="totals-row"><span>TOTAL</span><span>${formatUsdForClientDocument(displayTotal)}</span></div>
     <hr/>
     <div class="balance-label">BALANCE DUE</div>
-    <div class="balance-amt">USD $${displayTotal.toFixed(2)}</div>
+    <div class="balance-amt">${formatUsdForClientDocument(displayTotal)}</div>
   </div>`
 
   return wrapPrintDocument(meta, rowsJson, narrativeHtml, 'Invoice')
