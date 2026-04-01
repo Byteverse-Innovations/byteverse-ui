@@ -35,12 +35,23 @@ function newId(): string {
   return typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `id-${Date.now()}-${Math.random()}`
 }
 
-function ensureLineIdsDeep(items: LineItem[]): LineItem[] {
-  return items.map((li) => ({
-    ...li,
-    id: li.id && String(li.id).trim() ? li.id : newId(),
-    subLineItems: ensureLineIdsDeep(li.subLineItems ?? []),
-  }))
+/** Deep clone + coerce nested arrays; assign fresh ids when duplicates appear (fixes broken selects). */
+function normalizeQuoteLineItemsForEditor(items: LineItem[]): LineItem[] {
+  const seen = new Set<string>()
+  const walk = (arr: LineItem[]): LineItem[] =>
+    arr.map((li) => {
+      const rawSubs = li.subLineItems
+      const subs = Array.isArray(rawSubs) ? rawSubs : []
+      let id = li.id && String(li.id).trim() ? String(li.id) : newId()
+      if (seen.has(id)) id = newId()
+      seen.add(id)
+      return {
+        ...li,
+        id,
+        subLineItems: walk(subs),
+      }
+    })
+  return walk(items)
 }
 
 const emptyLineItem = (): LineItem => ({
@@ -171,11 +182,12 @@ function addSubLineAtPath(items: LineItem[], path: number[]): LineItem[] {
 function flattenLineItemsForSelect(items: LineItem[], prefix = ''): { id: string; label: string }[] {
   const out: { id: string; label: string }[] = []
   for (const li of items) {
+    const subs = Array.isArray(li.subLineItems) ? li.subLineItems : []
     const labelBits = [li.title?.trim(), li.description?.trim()].filter(Boolean).join(' — ')
     const base = labelBits || li.id.slice(0, 8)
     const label = prefix ? `${prefix} › ${base}` : base
     out.push({ id: li.id, label })
-    out.push(...flattenLineItemsForSelect(li.subLineItems ?? [], label))
+    out.push(...flattenLineItemsForSelect(subs, label))
   }
   return out
 }
@@ -369,6 +381,22 @@ function lineItemToMutationInput(li: LineItem): LineItemMutationInput {
     serviceId: li.serviceId,
     subLineItems: (li.subLineItems ?? []).map(lineItemToMutationInput),
   }
+}
+
+/** Deep-clone package lines with fresh ids (and a map from old line id → new) for duplicating quotes. */
+function cloneQuoteLineItemsWithNewIds(items: LineItem[]): { lineItems: LineItem[]; idMap: Map<string, string> } {
+  const idMap = new Map<string, string>()
+  const walk = (arr: LineItem[]): LineItem[] =>
+    arr.map((li) => {
+      const nid = newId()
+      idMap.set(li.id, nid)
+      return {
+        ...li,
+        id: nid,
+        subLineItems: walk(li.subLineItems ?? []),
+      }
+    })
+  return { lineItems: walk(items), idMap }
 }
 
 const emptyTimelineEvent = (sortOrder: number): TimelineEvent => ({
@@ -641,7 +669,7 @@ function QuoteForm({
   const [clientEmail, setClientEmail] = useState(quote?.clientEmail ?? '')
   const [status, setStatus] = useState(quote?.status ?? 'DRAFT')
   const [lineItems, setLineItems] = useState<LineItem[]>(() =>
-    quote?.lineItems?.length ? ensureLineIdsDeep([...quote.lineItems]) : [emptyLineItem()]
+    quote?.lineItems?.length ? normalizeQuoteLineItemsForEditor([...quote.lineItems]) : [emptyLineItem()]
   )
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>(() =>
     quote?.timelineEvents?.length
@@ -657,7 +685,7 @@ function QuoteForm({
     setClientName(quote?.clientName ?? '')
     setClientEmail(quote?.clientEmail ?? '')
     setStatus(quote?.status ?? 'DRAFT')
-    setLineItems(quote?.lineItems?.length ? ensureLineIdsDeep([...quote.lineItems]) : [emptyLineItem()])
+    setLineItems(quote?.lineItems?.length ? normalizeQuoteLineItemsForEditor([...quote.lineItems]) : [emptyLineItem()])
     setTimelineEvents(
       quote?.timelineEvents?.length
         ? quote.timelineEvents.map((e, i) => ({
@@ -697,7 +725,7 @@ function QuoteForm({
     setLineItems((prev) => removeLineAtPath(prev, path))
   }
 
-  const timelineLineOptions = useCallback(() => flattenLineItemsForSelect(lineItems), [lineItems])
+  const deliverableSelectOptions = useMemo(() => flattenLineItemsForSelect(lineItems), [lineItems])
 
   const updateTimeline = (idx: number, field: keyof TimelineEvent, value: string | number | null) => {
     setTimelineEvents((prev) =>
@@ -965,8 +993,8 @@ function QuoteForm({
                                   }
                                 >
                                   <option value="">Project milestone (no line)</option>
-                                  {timelineLineOptions().map((opt) => (
-                                    <option key={opt.id} value={opt.id}>
+                                  {deliverableSelectOptions.map((opt, optIdx) => (
+                                    <option key={`${opt.id}-${String(optIdx)}`} value={opt.id}>
                                       {opt.label}
                                     </option>
                                   ))}
@@ -1056,6 +1084,7 @@ export default function AdminQuotes() {
   const [showQuoteModal, setShowQuoteModal] = useState(false)
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [notionTrackJobId, setNotionTrackJobId] = useState<string | null>(null)
   /** Create/update quote errors shown inside the editor modal */
   const [quoteModalError, setQuoteModalError] = useState<string | null>(null)
   const [quotePdfLoadingId, setQuotePdfLoadingId] = useState<string | null>(null)
@@ -1069,6 +1098,27 @@ export default function AdminQuotes() {
   const { data: listServicesData } = useListAllServicesQuery(graphqlClient)
   const catalogServices = listServicesData?.listAllServices ?? []
   const serviceOptionGroups = useMemo(() => buildServiceOptionGroups(catalogServices), [catalogServices])
+
+  const { data: notionStatus } = useQuery({
+    queryKey: ['notionIntegrationStatus'],
+    queryFn: () => adminApi.notionIntegrationStatus(),
+  })
+
+  const { data: notionTrackedJob } = useQuery({
+    queryKey: ['notionSyncJob', notionTrackJobId],
+    queryFn: () => adminApi.notionSyncJob(notionTrackJobId!),
+    enabled: !!notionTrackJobId,
+    refetchInterval: (query) => {
+      const st = query.state.data?.status
+      return st === 'QUEUED' || st === 'RUNNING' ? 2000 : false
+    },
+  })
+
+  useEffect(() => {
+    if (notionTrackedJob?.status === 'SUCCEEDED' || notionTrackedJob?.status === 'FAILED') {
+      void queryClient.invalidateQueries({ queryKey: ['notionIntegrationStatus'] })
+    }
+  }, [notionTrackedJob?.status, queryClient])
 
   const { data: quotes = [], isLoading: quotesLoading } = useQuery({
     queryKey: ['admin', 'quotes'],
@@ -1123,6 +1173,23 @@ export default function AdminQuotes() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'quotes'] }),
     onError: (err) => setError(err instanceof Error ? err.message : String(err)),
   })
+  const pushQuoteToNotionMut = useMutation({
+    mutationFn: (quoteId: string) => adminApi.queuePushQuoteToNotion(quoteId),
+    onSuccess: (job) => {
+      setNotionTrackJobId(job.jobId)
+      setError(null)
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : String(err)),
+  })
+  const syncAllQuotesToNotionMut = useMutation({
+    mutationFn: () => adminApi.queueSyncQuotesToNotion(),
+    onSuccess: (job) => {
+      setNotionTrackJobId(job.jobId)
+      setError(null)
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : String(err)),
+  })
+
   const downloadPackageMut = useMutation({
     mutationFn: (quoteId: string) => adminApi.getQuoteClientPackageDownload(quoteId),
     onSuccess: (pkg) => {
@@ -1131,6 +1198,7 @@ export default function AdminQuotes() {
         setError('Package folder is empty.')
         return
       }
+      const staggerMs = pkg.files.length <= 1 ? 0 : 500
       pkg.files.forEach((f, i) => {
         window.setTimeout(() => {
           const a = document.createElement('a')
@@ -1139,7 +1207,7 @@ export default function AdminQuotes() {
           document.body.appendChild(a)
           a.click()
           a.remove()
-        }, i * 500)
+        }, i * staggerMs)
       })
     },
     onError: (err) => setError(err instanceof Error ? err.message : String(err)),
@@ -1180,6 +1248,28 @@ export default function AdminQuotes() {
     }
   }
 
+  const duplicateQuote = (source: Quote) => {
+    setQuoteModalError(null)
+    const { lineItems, idMap } = cloneQuoteLineItemsWithNewIds(source.lineItems ?? [])
+    const timelinePayload = (source.timelineEvents ?? []).map((e) => ({
+      id: newId(),
+      chartLabel: e.chartLabel,
+      description: e.description,
+      startDate: e.startDate.includes('T') ? e.startDate : `${e.startDate}T00:00:00.000Z`,
+      endDate: e.endDate.includes('T') ? e.endDate : `${e.endDate}T23:59:59.999Z`,
+      lineItemId: e.lineItemId && idMap.has(e.lineItemId) ? idMap.get(e.lineItemId)! : null,
+      sortOrder: e.sortOrder,
+    }))
+    createQuoteMut.mutate({
+      clientName: `${source.clientName} (copy)`,
+      clientEmail: source.clientEmail,
+      status: 'DRAFT',
+      lineItems: lineItems.map(lineItemToMutationInput),
+      total: quoteDisplayTotal(lineItems, source.total),
+      timelineEvents: timelinePayload,
+    })
+  }
+
   const copyQuoteLink = (quote: Quote) => {
     if (!quote.token) return
     const url = `${window.location.origin}/quote/${quote.token}`
@@ -1202,6 +1292,50 @@ export default function AdminQuotes() {
           {error}
         </Alert>
       )}
+      {notionTrackedJob && notionTrackJobId ? (
+        <Alert
+          variant={notionTrackedJob.status === 'FAILED' ? 'danger' : 'info'}
+          className="mb-3 py-2 small"
+          dismissible
+          onClose={() => setNotionTrackJobId(null)}
+        >
+          Notion job {notionTrackedJob.jobId.slice(0, 8)}… ({notionTrackedJob.type}) —{' '}
+          {notionTrackedJob.status}
+          {notionTrackedJob.errorMessage ? `: ${notionTrackedJob.errorMessage}` : ''}
+        </Alert>
+      ) : null}
+
+      {notionStatus?.connected && notionStatus.quotePushConfigured ? (
+        <Card className="admin-card mb-3">
+          <Card.Body>
+            <h2 className="admin-card-heading mb-2">Notion · Quotes &amp; Clients</h2>
+            <p className="text-white-50 small mb-3">
+              Quotes are authored in Byteverse; Notion is updated from here. Use{' '}
+              <strong className="text-white">Sync all to Notion</strong> to push every quote in one
+              background job (same as clicking Push on each row). This is the counterpart to Services’
+              “Sync from Notion”, but outbound—Notion is not the source of truth for quotes.
+            </p>
+            <button
+              type="button"
+              className="btn btn-outline-light btn-sm"
+              disabled={syncAllQuotesToNotionMut.isPending}
+              onClick={() => {
+                setError(null)
+                syncAllQuotesToNotionMut.mutate()
+              }}
+            >
+              {syncAllQuotesToNotionMut.isPending ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-1" aria-hidden />
+                  Queuing sync…
+                </>
+              ) : (
+                'Sync all quotes to Notion'
+              )}
+            </button>
+          </Card.Body>
+        </Card>
+      ) : null}
 
       <Tabs defaultActiveKey="quotes" className="mb-3 admin-tabs border-0">
         <Tab eventKey="quotes" title="Quotes">
@@ -1275,6 +1409,18 @@ export default function AdminQuotes() {
                                   }}
                                 >
                                   Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-outline-secondary btn-sm"
+                                  disabled={createQuoteMut.isPending}
+                                  onClick={() => {
+                                    setError(null)
+                                    duplicateQuote(q)
+                                  }}
+                                  title="Creates a new draft quote with the same lines, sub-lines, and timeline"
+                                >
+                                  Duplicate
                                 </button>
                                 <button
                                   type="button"
@@ -1396,6 +1542,38 @@ export default function AdminQuotes() {
                                   )}
                                 </button>
                               </div>
+                              {notionStatus?.connected && notionStatus.quotePushConfigured ? (
+                                <div
+                                  className="admin-table-actions-group"
+                                  role="group"
+                                  aria-label="Notion"
+                                >
+                                  <span className="admin-table-actions-group-label">Notion</span>
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline-info btn-sm"
+                                    title="Creates or updates a row in your Notion quotes database"
+                                    disabled={
+                                      pushQuoteToNotionMut.isPending &&
+                                      pushQuoteToNotionMut.variables === q.id
+                                    }
+                                    onClick={() => {
+                                      setError(null)
+                                      pushQuoteToNotionMut.mutate(q.id)
+                                    }}
+                                  >
+                                    {pushQuoteToNotionMut.isPending &&
+                                    pushQuoteToNotionMut.variables === q.id ? (
+                                      <>
+                                        <Spinner animation="border" size="sm" className="me-1" aria-hidden />
+                                        Pushing…
+                                      </>
+                                    ) : (
+                                      'Push to Notion'
+                                    )}
+                                  </button>
+                                </div>
+                              ) : null}
                             </div>
                           </td>
                         </tr>

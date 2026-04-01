@@ -346,6 +346,7 @@ export type NotionIntegrationStatus = {
   connected: boolean
   workspaceName?: string | null
   usesOAuth: boolean
+  quotePushConfigured: boolean
 }
 export type NotionSyncJob = {
   jobId: string
@@ -353,6 +354,7 @@ export type NotionSyncJob = {
   type: string
   status: string
   serviceId?: string | null
+  quoteId?: string | null
   createdAt?: string | null
   updatedAt?: string | null
   errorMessage?: string | null
@@ -370,6 +372,7 @@ const COMPLETE_NOTION_OAUTH = `
       connected
       workspaceName
       usesOAuth
+      quotePushConfigured
     }
   }
 `
@@ -380,6 +383,7 @@ const NOTION_INTEGRATION_STATUS = `
       connected
       workspaceName
       usesOAuth
+      quotePushConfigured
     }
   }
 `
@@ -392,6 +396,7 @@ const NOTION_SYNC_JOB = `
       type
       status
       serviceId
+      quoteId
       createdAt
       updatedAt
       errorMessage
@@ -407,6 +412,7 @@ const QUEUE_SYNC_SERVICES_FROM_NOTION = `
       type
       status
       serviceId
+      quoteId
       createdAt
       updatedAt
       errorMessage
@@ -422,6 +428,39 @@ const QUEUE_PUSH_SERVICE_TO_NOTION = `
       type
       status
       serviceId
+      quoteId
+      createdAt
+      updatedAt
+      errorMessage
+    }
+  }
+`
+
+const QUEUE_PUSH_QUOTE_TO_NOTION = `
+  mutation queuePushQuoteToNotion($quoteId: ID!) {
+    queuePushQuoteToNotion(quoteId: $quoteId) {
+      jobId
+      tenantId
+      type
+      status
+      serviceId
+      quoteId
+      createdAt
+      updatedAt
+      errorMessage
+    }
+  }
+`
+
+const QUEUE_SYNC_QUOTES_TO_NOTION = `
+  mutation queueSyncQuotesToNotion {
+    queueSyncQuotesToNotion {
+      jobId
+      tenantId
+      type
+      status
+      serviceId
+      quoteId
       createdAt
       updatedAt
       errorMessage
@@ -474,4 +513,21 @@ export async function queuePushServiceToNotion(serviceId: string): Promise<Notio
   )
   if (!data.queuePushServiceToNotion) throw new Error('Failed to queue push to Notion')
   return data.queuePushServiceToNotion
+}
+
+export async function queuePushQuoteToNotion(quoteId: string): Promise<NotionSyncJob> {
+  const data = await requestWithAuth<{ queuePushQuoteToNotion: NotionSyncJob }>(
+    QUEUE_PUSH_QUOTE_TO_NOTION,
+    { quoteId }
+  )
+  if (!data.queuePushQuoteToNotion) throw new Error('Failed to queue quote push to Notion')
+  return data.queuePushQuoteToNotion
+}
+
+export async function queueSyncQuotesToNotion(): Promise<NotionSyncJob> {
+  const data = await requestWithAuth<{ queueSyncQuotesToNotion: NotionSyncJob }>(
+    QUEUE_SYNC_QUOTES_TO_NOTION
+  )
+  if (!data.queueSyncQuotesToNotion) throw new Error('Failed to queue Notion quotes sync job')
+  return data.queueSyncQuotesToNotion
 }

@@ -51,6 +51,35 @@ function lineDeliverableLabel(l: LineItem): string {
   return t || d || 'Deliverable'
 }
 
+function findLineItemById(items: LineItem[], id: string): LineItem | null {
+  for (const item of items) {
+    if (item.id === id) return item
+    const found = findLineItemById(item.subLineItems ?? [], id)
+    if (found) return found
+  }
+  return null
+}
+
+/**
+ * Google Charts Timeline: first column is the row (swim lane). Bar labels use 1-based phase index
+ * (sort order / start date) per ms-billing; deliverable text stays in the row label.
+ */
+function timelineChartRowsForEvents(evs: TimelineEvent[], lineItems: LineItem[]): { role: string; name: string; start: string; end: string }[] {
+  return sortedEvents(evs).map((e, idx) => {
+    const phaseNum = idx + 1
+    const days = timelineDaySpanLabel(e.startDate, e.endDate)
+    const barName = days ? `${phaseNum} (${days})` : String(phaseNum)
+    let role: string
+    if (e.lineItemId) {
+      const li = findLineItemById(lineItems, e.lineItemId)
+      role = li ? lineDeliverableLabel(li) : barName
+    } else {
+      role = 'Project milestones'
+    }
+    return { role, name: barName, start: e.startDate, end: e.endDate }
+  })
+}
+
 function narrativeSection(title: string, body: string): string {
   if (!body.trim()) return ''
   return `<section class="narrative-block"><h3>${escapeHtml(title)}</h3><div class="narrative-body">${escapeHtml(body)}</div></section>`
@@ -123,18 +152,8 @@ function lineItemDescCellHtml(l: LineItem): string {
   return `<div class="line-item-desc"><div class="line-item-desc-detail line-item-desc-detail--solo">${escapeHtml(hasDesc ? rawDesc : '—')}</div></div>`
 }
 
-function timelineRowsJson(evs: TimelineEvent[]): string {
-  return JSON.stringify(
-    sortedEvents(evs).map((e) => {
-      const days = timelineDaySpanLabel(e.startDate, e.endDate)
-      return {
-        role: 'Phase',
-        name: days ? `${e.chartLabel} (${days})` : e.chartLabel,
-        start: e.startDate,
-        end: e.endDate,
-      }
-    })
-  )
+function timelineRowsJson(evs: TimelineEvent[], lineItems: LineItem[]): string {
+  return JSON.stringify(timelineChartRowsForEvents(evs, lineItems))
 }
 
 function timelineChartDrawScript(rowsJson: string): string {
@@ -159,13 +178,14 @@ function timelineChartDrawScript(rowsJson: string): string {
         return [ r.role, r.name, new Date(r.start), new Date(r.end) ];
       });
       dataTable.addRows(dataRows);
+      var rowCount = ROWS ? ROWS.length : 0;
       var options = {
-        height: 460,
+        height: Math.max(140 + rowCount * 52, 460),
         width: 746,
         hAxis: {
           format: 'MMM d, yyyy'
         },
-        timeline: { showRowLabels: true, showBarLabels: true }
+        timeline: { showRowLabels: true, showBarLabels: true, groupByRowLabel: false }
       };
       chart.draw(dataTable, options);
     });
@@ -174,7 +194,26 @@ function timelineChartDrawScript(rowsJson: string): string {
 
 const PRINT_BODY_STYLES = `
     body { font-family: 'Segoe UI', system-ui, sans-serif; color: #111; margin: 0; padding: 0; line-height: 1.45; overflow-x: hidden; }
-    .bv-print-main { padding: 0 24px 24px; max-width: 794px; box-sizing: border-box; }
+    .bv-print-main { padding: 0; max-width: 794px; box-sizing: border-box; margin: 0 auto; }
+    .quote-pdf-page {
+      box-sizing: border-box;
+      padding: 0 24px 24px;
+      break-before: page;
+      page-break-before: always;
+    }
+    .quote-pdf-page--first {
+      break-before: auto;
+      page-break-before: auto;
+    }
+    .quote-pdf-page--last {
+      page-break-after: auto;
+      break-after: auto;
+      padding-bottom: 28px;
+    }
+    .quote-pdf-page:not(.quote-pdf-page--first) {
+      break-before: page;
+      page-break-before: always;
+    }
     h2 { font-size: 1.15rem; margin: 1.25rem 0 0.5rem; }
     .meta { color: #444; margin-bottom: 1.5rem; }
     table.line-items { border-collapse: collapse; width: 100%; margin: 1.25rem 0 2rem; font-size: 0.9rem; }
@@ -194,7 +233,11 @@ const PRINT_BODY_STYLES = `
     .narrative-block { margin-top: 1.5rem; page-break-inside: avoid; }
     .narrative-block h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
     .narrative-body { white-space: pre-wrap; font-size: 0.88rem; color: #222; }
-    .totals-block { max-width: 280px; margin: 1.5rem 0 0 auto; text-align: right; font-size: 0.9rem; }
+    .totals-block {
+      max-width: 280px; margin: 1.5rem 0 0 auto; text-align: right; font-size: 0.9rem;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
     .totals-row { display: flex; justify-content: flex-end; gap: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
     .totals-block hr { border: none; border-top: 1px solid #e5e5e5; margin: 0.65rem 0; }
     .balance-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; margin-bottom: 0.35rem; }
@@ -213,15 +256,21 @@ function wrapPrintDocument(innerBody: string, rowsJson: string, narrativeHtml: s
   </style>
 </head>
 <body>
-  ${quoteClientBrandHeaderHtml(escapeHtml(docTitle))}
   <div class="bv-print-main">
-    ${innerBody}
-    <h2>Timeline</h2>
-    <div id="timeline-chart"></div>
-    <h2>Scope &amp; milestones</h2>
-    ${narrativeHtml}
+    <div class="quote-pdf-page quote-pdf-page--first">
+      ${quoteClientBrandHeaderHtml(escapeHtml(docTitle))}
+      ${innerBody}
+    </div>
+    <div class="quote-pdf-page">
+      <h2>Timeline</h2>
+      <div id="timeline-chart"></div>
+    </div>
+    <div class="quote-pdf-page quote-pdf-page--last">
+      <h2>Scope &amp; milestones</h2>
+      ${narrativeHtml}
+      ${quoteClientFooterHtml()}
+    </div>
     ${timelineChartDrawScript(rowsJson)}
-    ${quoteClientFooterHtml()}
   </div>
 </body>
 </html>`
@@ -229,10 +278,11 @@ function wrapPrintDocument(innerBody: string, rowsJson: string, narrativeHtml: s
 
 export function buildQuotePrintHtml(quote: Quote): string {
   const evs = sortedEvents(quote.timelineEvents ?? [])
-  const narrativeHtml = buildNarrativeHtml(quote.lineItems ?? [], evs)
-  const lineRows = buildLineItemRowsHtml(quote.lineItems ?? [], 0)
+  const lines = quote.lineItems ?? []
+  const narrativeHtml = buildNarrativeHtml(lines, evs)
+  const lineRows = buildLineItemRowsHtml(lines, 0)
   const displayTotal = quoteDisplayTotal(quote.lineItems, quote.total)
-  const rowsJson = timelineRowsJson(evs)
+  const rowsJson = timelineRowsJson(evs, lines)
   const meta = `<div class="meta">
     ${escapeHtml(quote.clientName)}<br/>
     ${escapeHtml(quote.clientEmail)}<br/>
@@ -255,10 +305,11 @@ export function buildQuotePrintHtml(quote: Quote): string {
 
 export function buildInvoicePrintHtml(invoice: Invoice): string {
   const evs = sortedEvents(invoice.timelineEvents ?? [])
-  const narrativeHtml = buildNarrativeHtml(invoice.lineItems ?? [], evs)
-  const lineRows = buildLineItemRowsHtml(invoice.lineItems ?? [], 0)
+  const lines = invoice.lineItems ?? []
+  const narrativeHtml = buildNarrativeHtml(lines, evs)
+  const lineRows = buildLineItemRowsHtml(lines, 0)
   const displayTotal = quoteDisplayTotal(invoice.lineItems, invoice.total)
-  const rowsJson = timelineRowsJson(evs)
+  const rowsJson = timelineRowsJson(evs, lines)
   const meta = `<div class="meta">
     ${escapeHtml(invoice.clientName)}<br/>
     ${escapeHtml(invoice.clientEmail)}<br/>

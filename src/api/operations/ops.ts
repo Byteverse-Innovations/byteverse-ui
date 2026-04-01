@@ -147,7 +147,9 @@ export type Mutation = {
   markInvoicePaid?: Maybe<Invoice>;
   notionOAuthUrl: NotionOAuthUrl;
   persistContactSubmission: ContactSubmission;
+  queuePushQuoteToNotion: NotionSyncJob;
   queuePushServiceToNotion: NotionSyncJob;
+  queueSyncQuotesToNotion: NotionSyncJob;
   queueSyncServicesFromNotion: NotionSyncJob;
   submitContactForm: ContactFormResponse;
   updateQuote?: Maybe<Quote>;
@@ -206,6 +208,11 @@ export type MutationPersistContactSubmissionArgs = {
 };
 
 
+export type MutationQueuePushQuoteToNotionArgs = {
+  quoteId: Scalars['ID']['input'];
+};
+
+
 export type MutationQueuePushServiceToNotionArgs = {
   serviceId: Scalars['ID']['input'];
 };
@@ -230,6 +237,7 @@ export type MutationUpdateServiceArgs = {
 export type NotionIntegrationStatus = {
   __typename?: 'NotionIntegrationStatus';
   connected: Scalars['Boolean']['output'];
+  quotePushConfigured: Scalars['Boolean']['output'];
   usesOAuth: Scalars['Boolean']['output'];
   workspaceName?: Maybe<Scalars['String']['output']>;
 };
@@ -245,6 +253,7 @@ export type NotionSyncJob = {
   createdAt?: Maybe<Scalars['String']['output']>;
   errorMessage?: Maybe<Scalars['String']['output']>;
   jobId: Scalars['ID']['output'];
+  quoteId?: Maybe<Scalars['ID']['output']>;
   serviceId?: Maybe<Scalars['ID']['output']>;
   status: Scalars['String']['output'];
   tenantId: Scalars['ID']['output'];

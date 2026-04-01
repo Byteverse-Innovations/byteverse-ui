@@ -128,6 +128,7 @@ type NotionIntegrationStatus @aws_cognito_user_pools {
   connected: Boolean!
   workspaceName: String
   usesOAuth: Boolean!
+  quotePushConfigured: Boolean!
 }
 
 type NotionSyncJob @aws_cognito_user_pools {
@@ -136,6 +137,7 @@ type NotionSyncJob @aws_cognito_user_pools {
   type: String!
   status: String!
   serviceId: ID
+  quoteId: ID
   createdAt: String
   updatedAt: String
   errorMessage: String
@@ -226,6 +228,8 @@ type Mutation {
   completeNotionOAuth(input: CompleteNotionOAuthInput!): NotionIntegrationStatus! @aws_cognito_user_pools
   queueSyncServicesFromNotion: NotionSyncJob! @aws_cognito_user_pools
   queuePushServiceToNotion(serviceId: ID!): NotionSyncJob! @aws_cognito_user_pools
+  queuePushQuoteToNotion(quoteId: ID!): NotionSyncJob! @aws_cognito_user_pools
+  queueSyncQuotesToNotion: NotionSyncJob! @aws_cognito_user_pools
 }
 
 input CreateServiceInput {
