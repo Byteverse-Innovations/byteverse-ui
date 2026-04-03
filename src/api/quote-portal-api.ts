@@ -18,7 +18,7 @@ const LINEITEM_TREE = `
 const GET_QUOTE_BY_TOKEN = `
   query getQuoteByToken($token: String!) {
     getQuoteByToken(token: $token) {
-      id clientName clientEmail status total token quoteAssetsPrefix createdAt updatedAt
+      id clientName clientEmail status total token quoteAssetsPrefix monthlyCostEstimate quoteSummary createdAt updatedAt
       lineItems { ${LINEITEM_TREE} }
       timelineEvents { id chartLabel description startDate endDate lineItemId sortOrder }
     }
@@ -27,7 +27,7 @@ const GET_QUOTE_BY_TOKEN = `
 const ACCEPT_QUOTE = `
   mutation acceptQuote($id: ID!, $token: String!) {
     acceptQuote(id: $id, token: $token) {
-      id clientName clientEmail status total token quoteAssetsPrefix createdAt updatedAt
+      id clientName clientEmail status total token quoteAssetsPrefix monthlyCostEstimate quoteSummary createdAt updatedAt
       lineItems { ${LINEITEM_TREE} }
       timelineEvents { id chartLabel description startDate endDate lineItemId sortOrder }
     }

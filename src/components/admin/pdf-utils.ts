@@ -24,6 +24,12 @@ const HTML2CANVAS_SCALE = 2
 const PDF_MARGIN_MM = 6
 
 /**
+ * Keep raster slices above the jsPDF page-number line (`addPageNumberFooters` at ~pageH − 4mm).
+ * Without this, the last rows on each page can visually collide with “© … Page n of m”.
+ */
+const PDF_PAGE_NUMBER_RESERVE_MM = 9
+
+/**
  * Footer band in html2canvas pixel Y (0 = top of capture), so paging can avoid splitting it across PDF pages.
  */
 function footerBandCanvasPx(
@@ -56,6 +62,31 @@ function totalsBlockBandInSectionSliceCanvasPx(
   scale: number
 ): { top: number; bottom: number } | null {
   const el = section.querySelector('.totals-block') as HTMLElement | null
+  if (!el) return null
+  void el.offsetWidth
+  const br = body.getBoundingClientRect()
+  const sr = section.getBoundingClientRect()
+  const er = el.getBoundingClientRect()
+  const scrollTop = body.scrollTop ?? 0
+  const secTopDoc = sr.top - br.top + scrollTop
+  const topDoc = er.top - br.top + scrollTop
+  const bottomDoc = er.bottom - br.top + scrollTop
+  const topPx = (topDoc - secTopDoc) * scale
+  const bottomPx = (bottomDoc - secTopDoc) * scale
+  const t = Math.max(0, Math.min(topPx, sectionSliceHeightPx))
+  const b = Math.max(t + 2, Math.min(bottomPx, sectionSliceHeightPx))
+  if (b - t < 4) return null
+  return { top: t, bottom: b }
+}
+
+/** `.bv-footer-brand` in a section slice — same coordinates as `totalsBlockBandInSectionSliceCanvasPx`. */
+function footerBrandBandInSectionSliceCanvasPx(
+  section: HTMLElement,
+  body: HTMLElement,
+  sectionSliceHeightPx: number,
+  scale: number
+): { top: number; bottom: number } | null {
+  const el = section.querySelector('.bv-footer-brand') as HTMLElement | null
   if (!el) return null
   void el.offsetWidth
   const br = body.getBoundingClientRect()
@@ -134,8 +165,9 @@ function addCanvasToPdfPaged(
   const pageH = pdf.internal.pageSize.getHeight()
   const contentW = pageW - margin * 2
   const contentH = pageH - margin * 2
+  const sliceBudgetMm = Math.max(12, contentH - PDF_PAGE_NUMBER_RESERVE_MM)
   const imgHmm = (canvas.height * contentW) / canvas.width
-  const pagePx = (contentH / imgHmm) * canvas.height
+  const pagePx = (sliceBudgetMm / imgHmm) * canvas.height
 
   let srcY = 0
   let pageIndex = 0
@@ -382,13 +414,22 @@ async function renderPrintHtmlToPdfFile(html: string, filename: string): Promise
         if (pageAdded) pdf.addPage()
         pageAdded = true
         const firstSection = sections[0]
+        const sectionEl = sections[i]!
         const totalsBand =
           i === 0 && firstSection
             ? totalsBlockBandInSectionSliceCanvasPx(firstSection, body, canvas.height, HTML2CANVAS_SCALE)
             : null
-        /** First section: keep totals block on one PDF page; other sections: jsPDF draws © below raster. */
+        const footerBrandBand =
+          i === sections.length - 1
+            ? footerBrandBandInSectionSliceCanvasPx(sectionEl, body, canvas.height, HTML2CANVAS_SCALE)
+            : null
+        const avoidSplitBands = [totalsBand, footerBrandBand].filter(Boolean) as {
+          top: number
+          bottom: number
+        }[]
+        /** First section: keep totals on one page; last: keep `.bv-footer-brand` intact; © sits below raster. */
         addCanvasToPdfPaged(pdf, canvas, {
-          avoidSplitBands: totalsBand ? [totalsBand] : [],
+          avoidSplitBands,
         })
       }
     } else {

@@ -31,6 +31,10 @@ export type Quote = {
   updatedAt?: string | null
   timelineEvents?: TimelineEvent[] | null
   quoteAssetsPrefix?: string | null
+  /** JSON string — ongoing monthly cost estimate (v1). */
+  monthlyCostEstimate?: string | null
+  /** Plain text; shown on client quote before line items. */
+  quoteSummary?: string | null
 }
 
 export type QuoteClientPackageFile = {
@@ -77,7 +81,7 @@ const LINEITEM_SELECTION = `
 `
 
 const QUOTE_SELECTION = `
-  id clientName clientEmail status total token quoteAssetsPrefix createdAt updatedAt
+  id clientName clientEmail status total token quoteAssetsPrefix monthlyCostEstimate quoteSummary createdAt updatedAt
   lineItems { ${LINEITEM_SELECTION} }
   timelineEvents { id chartLabel description startDate endDate lineItemId sortOrder }
 `
@@ -201,6 +205,8 @@ export async function createQuote(input: {
   lineItems: LineItem[]
   total: number
   timelineEvents?: TimelineEvent[]
+  monthlyCostEstimate?: string | null
+  quoteSummary?: string | null
 }): Promise<Quote> {
   const data = await requestWithAuth<{ createQuote: Quote }>(CREATE_QUOTE, { input })
   if (!data.createQuote) throw new Error('Failed to create quote')
@@ -216,6 +222,8 @@ export async function updateQuote(
     lineItems: LineItem[]
     total: number
     timelineEvents: TimelineEvent[]
+    monthlyCostEstimate: string | null
+    quoteSummary: string | null
   }>
 ): Promise<Quote> {
   const data = await requestWithAuth<{ updateQuote: Quote | null }>(UPDATE_QUOTE, { id, input })

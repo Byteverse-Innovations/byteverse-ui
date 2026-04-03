@@ -19,9 +19,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { graphqlClient } from '../../api/clients'
 import { useListAllServicesQuery, type ListAllServicesQuery } from '../../api/operations/ops'
 import * as adminApi from '../../api/admin-api'
-import type { Quote, Invoice, LineItem, TimelineEvent } from '../../api/admin-api'
+import type { Quote, LineItem, TimelineEvent } from '../../api/admin-api'
 import { downloadQuotePdf, downloadInvoicePdf } from './pdf-utils'
 import AdminPageHeader from './AdminPageHeader'
+import QuoteMonthlyCostsPanel from './QuoteMonthlyCostsPanel'
+import { parseMonthlyCostEstimate } from '../../lib/quote-monthly-costs'
 import {
   eventRangeLabelForClient,
   formatClientFacingDate,
@@ -660,11 +662,20 @@ function QuoteForm({
   serviceOptionGroups: ServiceOptionGroup[]
   /** Full rows from listAllServices (price is often a string in the API). */
   catalogServices: CatalogServiceRow[]
-  onSave: (input: adminApi.Quote & { lineItems: LineItem[]; timelineEvents: TimelineEvent[] }) => void
+  onSave: (
+    input: adminApi.Quote & {
+      lineItems: LineItem[]
+      timelineEvents: TimelineEvent[]
+      monthlyCostEstimate?: string | null
+      quoteSummary?: string | null
+    }
+  ) => void
   onCancel: () => void
   isSubmitting?: boolean
 }) {
-  const [quoteSection, setQuoteSection] = useState<'client' | 'lines' | 'timeline'>('client')
+  const [quoteSection, setQuoteSection] = useState<'client' | 'lines' | 'timeline' | 'monthly'>('client')
+  const [monthlyCostJson, setMonthlyCostJson] = useState<string | null>(() => quote?.monthlyCostEstimate ?? null)
+  const [quoteSummary, setQuoteSummary] = useState(() => quote?.quoteSummary ?? '')
   const [clientName, setClientName] = useState(quote?.clientName ?? '')
   const [clientEmail, setClientEmail] = useState(quote?.clientEmail ?? '')
   const [status, setStatus] = useState(quote?.status ?? 'DRAFT')
@@ -695,6 +706,8 @@ function QuoteForm({
         }))
         : []
     )
+    setMonthlyCostJson(quote?.monthlyCostEstimate ?? null)
+    setQuoteSummary(quote?.quoteSummary ?? '')
   }, [quote?.id])
 
   useEffect(() => {
@@ -704,6 +717,10 @@ function QuoteForm({
   const recalcTotal = useCallback(() => quoteLineItemsSubtotal(lineItems), [lineItems])
   const chartReady = timelineChartReadyCount(timelineEvents)
   const lineRowCount = useMemo(() => countAllLineRows(lineItems), [lineItems])
+  const monthlyLineCount = useMemo(
+    () => parseMonthlyCostEstimate(monthlyCostJson).lines.filter((l) => l.label.trim() || l.amountMonthly > 0).length,
+    [monthlyCostJson]
+  )
 
   const updateLineItemPath = (path: number[], field: keyof LineItem, value: string | number | null) => {
     setLineItems((prev) => updateLineAtPath(prev, path, field, value))
@@ -760,6 +777,8 @@ function QuoteForm({
       lineItems: items,
       total,
       timelineEvents: events,
+      monthlyCostEstimate: monthlyCostJson,
+      quoteSummary: quoteSummary.trim() ? quoteSummary : null,
       token: quote?.token ?? undefined,
       quoteAssetsPrefix: quote?.quoteAssetsPrefix ?? undefined,
       createdAt: quote?.createdAt ?? undefined,
@@ -814,7 +833,7 @@ function QuoteForm({
 
       <Tab.Container
         activeKey={quoteSection}
-        onSelect={(k) => setQuoteSection((k as 'client' | 'lines' | 'timeline' | null) ?? 'client')}
+        onSelect={(k) => setQuoteSection((k as 'client' | 'lines' | 'timeline' | 'monthly' | null) ?? 'client')}
       >
         <Nav variant="pills" className="quote-form-section-nav flex-wrap gap-1 mb-3">
           <Nav.Item>
@@ -840,6 +859,14 @@ function QuoteForm({
               Timeline
               <Badge bg={timelineEvents.length ? 'info' : 'secondary'} className="ms-1 rounded-pill">
                 {timelineEvents.length}
+              </Badge>
+            </Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link eventKey="monthly">
+              Monthly costs
+              <Badge bg={monthlyLineCount > 0 ? 'success' : 'secondary'} className="ms-1 rounded-pill">
+                {monthlyLineCount}
               </Badge>
             </Nav.Link>
           </Nav.Item>
@@ -884,6 +911,22 @@ function QuoteForm({
                   </Form.Text>
                 </Form.Group>
               </Col>
+              <Col xs={12}>
+                <Form.Group>
+                  <Form.Label>Client-facing summary</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={5}
+                    value={quoteSummary}
+                    onChange={(e) => setQuoteSummary(e.target.value)}
+                    placeholder="Optional. Shown on the quote portal, print/PDF, and client package—above the line items table."
+                    className="font-monospace small"
+                  />
+                  <Form.Text className="text-white-50">
+                    Plain text; line breaks are preserved. Leave blank to omit the section.
+                  </Form.Text>
+                </Form.Group>
+              </Col>
             </Row>
           </Tab.Pane>
 
@@ -917,6 +960,21 @@ function QuoteForm({
                 Next: Timeline →
               </button>
             </div>
+          </Tab.Pane>
+
+          <Tab.Pane eventKey="monthly" className="quote-monthly-tab pt-1">
+            <Card className="border-secondary bg-transparent mb-3">
+              <Card.Body className="py-3 px-3">
+                <p className="small text-white mb-3">
+                  <strong className="text-info">Estimated ongoing costs</strong> print on <strong>their own page</strong> on
+                  the PDF (after the line items and balance due). The client portal shows them <strong>after</strong> the
+                  line-item total. The optional <strong className="text-white">Client-facing summary</strong> (Client tab)
+                  appears <strong>before</strong> the line items table. Use benchmarks as a starting point — always verify
+                  current vendor pricing.
+                </p>
+                <QuoteMonthlyCostsPanel valueJson={monthlyCostJson} onChange={setMonthlyCostJson} />
+              </Card.Body>
+            </Card>
           </Tab.Pane>
 
           <Tab.Pane eventKey="timeline" className="quote-timeline-tab pt-1">
@@ -1224,6 +1282,13 @@ export default function AdminQuotes() {
       lineItemId: e.lineItemId,
       sortOrder: e.sortOrder,
     }))
+    const monthlyCostEstimate =
+      raw.monthlyCostEstimate != null && String(raw.monthlyCostEstimate).trim() !== ''
+        ? raw.monthlyCostEstimate
+        : null
+    const quoteSummary =
+      raw.quoteSummary != null && String(raw.quoteSummary).trim() !== '' ? String(raw.quoteSummary).trim() : null
+
     if (raw.id) {
       updateQuoteMut.mutate({
         id: raw.id,
@@ -1234,6 +1299,8 @@ export default function AdminQuotes() {
           lineItems: raw.lineItems.map(lineItemToMutationInput),
           total: raw.total,
           timelineEvents: timelinePayload,
+          monthlyCostEstimate,
+          quoteSummary,
         },
       })
     } else {
@@ -1244,6 +1311,8 @@ export default function AdminQuotes() {
         lineItems: raw.lineItems.map(lineItemToMutationInput),
         total: raw.total,
         timelineEvents: timelinePayload,
+        monthlyCostEstimate,
+        quoteSummary,
       })
     }
   }
@@ -1267,6 +1336,14 @@ export default function AdminQuotes() {
       lineItems: lineItems.map(lineItemToMutationInput),
       total: quoteDisplayTotal(lineItems, source.total),
       timelineEvents: timelinePayload,
+      monthlyCostEstimate:
+        source.monthlyCostEstimate != null && String(source.monthlyCostEstimate).trim() !== ''
+          ? source.monthlyCostEstimate
+          : null,
+      quoteSummary:
+        source.quoteSummary != null && String(source.quoteSummary).trim() !== ''
+          ? source.quoteSummary
+          : null,
     })
   }
 

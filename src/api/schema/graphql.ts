@@ -61,6 +61,8 @@ export type CreateQuoteInput = {
   clientEmail: Scalars['String']['input'];
   clientName: Scalars['String']['input'];
   lineItems: Array<LineItemInput>;
+  monthlyCostEstimate?: InputMaybe<Scalars['String']['input']>;
+  quoteSummary?: InputMaybe<Scalars['String']['input']>;
   status: QuoteStatus;
   timelineEvents?: InputMaybe<Array<TimelineEventInput>>;
   total: Scalars['Float']['input'];
@@ -305,6 +307,8 @@ export type Quote = {
   createdBy?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   lineItems: Array<LineItem>;
+  monthlyCostEstimate?: Maybe<Scalars['String']['output']>;
+  quoteSummary?: Maybe<Scalars['String']['output']>;
   quoteAssetsPrefix?: Maybe<Scalars['String']['output']>;
   status: QuoteStatus;
   timelineEvents?: Maybe<Array<TimelineEvent>>;
@@ -383,6 +387,8 @@ export type UpdateQuoteInput = {
   clientEmail?: InputMaybe<Scalars['String']['input']>;
   clientName?: InputMaybe<Scalars['String']['input']>;
   lineItems?: InputMaybe<Array<LineItemInput>>;
+  monthlyCostEstimate?: InputMaybe<Scalars['String']['input']>;
+  quoteSummary?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<QuoteStatus>;
   timelineEvents?: InputMaybe<Array<TimelineEventInput>>;
   total?: InputMaybe<Scalars['Float']['input']>;

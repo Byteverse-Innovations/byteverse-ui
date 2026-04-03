@@ -39,6 +39,12 @@
   overflow: hidden;
 }
 
+.quote-portal-summary__body {
+  white-space: pre-wrap;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
 .min-vh-50 {
   min-height: 50vh;
 }
@@ -94,4 +100,48 @@
   line-height: 1.38;
   white-space: pre-wrap;
   overflow-wrap: break-word;
+}
+
+.quote-portal-monthly-costs {
+  .monthly-costs-block h2 {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .monthly-costs-intro,
+  .monthly-costs-disclaimer {
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .monthly-cost-notes {
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  .line-items.monthly-costs-table {
+    thead th {
+      text-transform: uppercase;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      border-top: 2px solid rgba(255, 255, 255, 0.5);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    tbody td {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    .col-num {
+      text-align: right;
+    }
+  }
+
+  .monthly-costs-subtotal {
+    color: rgba(255, 255, 255, 0.95);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    padding-top: 0.5rem;
+  }
 }

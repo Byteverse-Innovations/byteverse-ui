@@ -12,6 +12,7 @@ import {
   timelineDaySpanLabel,
 } from './quote-display'
 import { quoteClientBrandHeaderHtml, quoteClientBrandStyles, quoteClientFooterHtml } from './quote-print-branding'
+import { buildMonthlyCostsSectionHtml } from './quote-monthly-costs'
 
 function escapeHtml(s: string): string {
   return s
@@ -19,6 +20,15 @@ function escapeHtml(s: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
+}
+
+function buildQuoteSummarySectionHtml(raw: string | null | undefined): string {
+  const text = raw != null ? String(raw).trim() : ''
+  if (!text) return ''
+  return `<section class="quote-summary-block">
+  <h2>Summary</h2>
+  <div class="quote-summary-body">${escapeHtml(text)}</div>
+</section>`
 }
 
 function sortedEvents(events: TimelineEvent[]): TimelineEvent[] {
@@ -204,6 +214,8 @@ const PRINT_BODY_STYLES = `
     .quote-pdf-page--first {
       break-before: auto;
       page-break-before: auto;
+      break-inside: auto;
+      page-break-inside: auto;
     }
     .quote-pdf-page--last {
       page-break-after: auto;
@@ -216,7 +228,16 @@ const PRINT_BODY_STYLES = `
     }
     h2 { font-size: 1.15rem; margin: 1.25rem 0 0.5rem; }
     .meta { color: #444; margin-bottom: 1.5rem; }
-    table.line-items { border-collapse: collapse; width: 100%; margin: 1.25rem 0 2rem; font-size: 0.9rem; }
+    table.line-items {
+      border-collapse: collapse; width: 100%; margin: 1.25rem 0 2rem; font-size: 0.9rem;
+      page-break-inside: auto;
+      break-inside: auto;
+    }
+    table.line-items thead { display: table-header-group; }
+    table.line-items tbody tr.line-item-row {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
     table.line-items thead th {
       text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; font-size: 0.72rem;
       padding: 10px 8px 8px 0; border-top: 3px solid #000; border-bottom: 3px solid #000;
@@ -242,9 +263,28 @@ const PRINT_BODY_STYLES = `
     .totals-block hr { border: none; border-top: 1px solid #e5e5e5; margin: 0.65rem 0; }
     .balance-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; margin-bottom: 0.35rem; }
     .balance-amt { font-size: 1.25rem; font-weight: 700; }
+    .monthly-costs-block { margin: 0; page-break-inside: auto; break-inside: auto; }
+    .monthly-costs-block h2 { font-size: 1.05rem; margin: 0 0 0.5rem; }
+    .monthly-costs-intro { color: #333; font-size: 0.9rem; margin: 0 0 0.5rem; }
+    .monthly-costs-disclaimer { color: #666; margin: 0 0 0.75rem; }
+    .monthly-cost-notes { font-size: 0.78em; color: #555; margin-top: 0.2rem; white-space: pre-wrap; }
+    .monthly-cost-paidby { font-size: 0.85rem; text-align: right !important; }
+    .monthly-costs-subtotal {
+      display: flex; justify-content: flex-end; gap: 2rem; font-weight: 700; margin-top: 0.75rem;
+      font-size: 0.95rem;
+    }
+    .quote-summary-block { margin: 0 0 1.25rem; page-break-inside: avoid; break-inside: avoid; }
+    .quote-summary-block h2 { font-size: 1.05rem; margin: 0 0 0.5rem; }
+    .quote-summary-body { white-space: pre-wrap; font-size: 0.92rem; color: #222; line-height: 1.5; }
 `
 
-function wrapPrintDocument(innerBody: string, rowsJson: string, narrativeHtml: string, docTitle: string): string {
+function wrapPrintDocument(
+  innerBody: string,
+  rowsJson: string,
+  narrativeHtml: string,
+  docTitle: string,
+  monthlyPageHtml?: string
+): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -261,6 +301,7 @@ function wrapPrintDocument(innerBody: string, rowsJson: string, narrativeHtml: s
       ${quoteClientBrandHeaderHtml(escapeHtml(docTitle))}
       ${innerBody}
     </div>
+    ${monthlyPageHtml ? `<div class="quote-pdf-page">${monthlyPageHtml}</div>` : ''}
     <div class="quote-pdf-page">
       <h2>Timeline</h2>
       <div id="timeline-chart"></div>
@@ -283,11 +324,14 @@ export function buildQuotePrintHtml(quote: Quote): string {
   const lineRows = buildLineItemRowsHtml(lines, 0)
   const displayTotal = quoteDisplayTotal(quote.lineItems, quote.total)
   const rowsJson = timelineRowsJson(evs, lines)
+  const monthlyHtml = buildMonthlyCostsSectionHtml(quote.monthlyCostEstimate ?? null)
+  const summaryHtml = buildQuoteSummarySectionHtml(quote.quoteSummary ?? null)
   const meta = `<div class="meta">
     ${escapeHtml(quote.clientName)}<br/>
     ${escapeHtml(quote.clientEmail)}<br/>
     Status: ${escapeHtml(quote.status)} · ${escapeHtml(formatClientFacingDate(quote.createdAt ?? null))}
   </div>
+  ${summaryHtml}
   <h2>Line items</h2>
   <table class="line-items">
     <thead><tr><th class="col-desc">Description</th><th class="col-num">Rate</th><th class="col-num">Qty</th><th class="col-num">Amount</th></tr></thead>
@@ -300,7 +344,8 @@ export function buildQuotePrintHtml(quote: Quote): string {
     <div class="balance-amt">${formatUsdForClientDocument(displayTotal)}</div>
   </div>`
 
-  return wrapPrintDocument(meta, rowsJson, narrativeHtml, 'Quote')
+  const monthlyPage = monthlyHtml.trim() ? monthlyHtml : undefined
+  return wrapPrintDocument(meta, rowsJson, narrativeHtml, 'Quote', monthlyPage)
 }
 
 export function buildInvoicePrintHtml(invoice: Invoice): string {

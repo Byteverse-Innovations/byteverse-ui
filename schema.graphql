@@ -48,6 +48,8 @@ type Quote {
   createdBy: String
   timelineEvents: [TimelineEvent!]
   quoteAssetsPrefix: String
+  monthlyCostEstimate: String
+  quoteSummary: String
 }
 
 type Invoice {
@@ -185,6 +187,8 @@ input CreateQuoteInput {
   lineItems: [LineItemInput!]!
   total: Float!
   timelineEvents: [TimelineEventInput!]
+  monthlyCostEstimate: String
+  quoteSummary: String
 }
 
 input UpdateQuoteInput {
@@ -194,6 +198,8 @@ input UpdateQuoteInput {
   lineItems: [LineItemInput!]
   total: Float
   timelineEvents: [TimelineEventInput!]
+  monthlyCostEstimate: String
+  quoteSummary: String
 }
 
 input CreateInvoiceInput {

@@ -4,6 +4,7 @@ import { Card, Button, Table, Spinner, Alert } from 'react-bootstrap'
 import { getQuoteByToken, acceptQuote } from '../../api/quote-portal-api'
 import type { LineItem, Quote } from '../../api/admin-api'
 import { lineItemPayableAmount, quoteDisplayTotal, lineItemTitleDescriptionParts } from '../../lib/quote-display'
+import { buildMonthlyCostsSectionHtml } from '../../lib/quote-monthly-costs'
 import logoMark from '../../assets/icon-only-transparent-no-buffer.png'
 import './QuotePortal.scss'
 
@@ -158,6 +159,12 @@ export default function QuotePortal() {
             Client: <strong className="text-white">{quote.clientName}</strong> ({quote.clientEmail})
           </p>
           <p className="text-white-50 mb-3">Status: {quote.status}</p>
+          {quote.quoteSummary?.trim() ? (
+            <section className="quote-portal-summary mb-4">
+              <h2 className="quote-portal-summary__title h6 text-white mb-2">Summary</h2>
+              <div className="quote-portal-summary__body text-white-50">{quote.quoteSummary}</div>
+            </section>
+          ) : null}
           <Table size="sm" className="text-white mb-4 quote-line-items-table">
             <thead>
               <tr>
@@ -171,7 +178,15 @@ export default function QuotePortal() {
               <LineItemTableRows items={quote.lineItems ?? []} />
             </tbody>
           </Table>
-          <p className="fw-bold text-white">Total: ${displayTotal.toFixed(2)}</p>
+          <p className="fw-bold text-white mb-4">Total: ${displayTotal.toFixed(2)}</p>
+          {quote.monthlyCostEstimate ? (
+            <div
+              className="quote-portal-monthly-costs mb-4 text-white"
+              dangerouslySetInnerHTML={{
+                __html: buildMonthlyCostsSectionHtml(quote.monthlyCostEstimate),
+              }}
+            />
+          ) : null}
           {quote.status === 'SENT' && (
             <div className="d-flex gap-2 mt-3">
               <Button
