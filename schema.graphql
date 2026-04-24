@@ -81,6 +81,13 @@ enum InvoiceStatus {
   OVERDUE
 }
 
+enum AuditStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  ARCHIVED
+}
+
 type ContactSubmission {
   id: ID!
   name: String!
@@ -105,6 +112,11 @@ type Query {
   notionIntegrationStatus: NotionIntegrationStatus! @aws_cognito_user_pools
   notionSyncJob(id: ID!): NotionSyncJob @aws_cognito_user_pools
   getQuoteClientPackageDownload(quoteId: ID!): QuoteClientPackageDownload! @aws_cognito_user_pools
+
+  listAuditTemplates: [AuditTemplate!]! @aws_cognito_user_pools
+  getAuditTemplate(id: ID!): AuditTemplate @aws_cognito_user_pools
+  listAudits: [Audit!]! @aws_cognito_user_pools
+  getAudit(id: ID!): Audit @aws_cognito_user_pools
 }
 
 input ContactFormInput {
@@ -157,6 +169,171 @@ type QuoteClientPackageDownload @aws_cognito_user_pools {
   prefix: String!
   files: [QuoteClientPackageFile!]!
   expiresAt: String!
+}
+
+type AuditItem @aws_cognito_user_pools {
+  id: ID!
+  label: String!
+  description: String
+  referenceUrl: String
+  remediation: String
+  sortOrder: Int
+}
+
+type AuditSection @aws_cognito_user_pools {
+  id: ID!
+  title: String!
+  description: String
+  sortOrder: Int
+  items: [AuditItem!]!
+}
+
+type AuditTemplate @aws_cognito_user_pools {
+  id: ID!
+  name: String!
+  description: String
+  category: String
+  version: Int
+  sections: [AuditSection!]!
+  createdAt: String
+  updatedAt: String
+  createdBy: String
+}
+
+type AuditRunItem @aws_cognito_user_pools {
+  id: ID!
+  label: String!
+  description: String
+  referenceUrl: String
+  remediation: String
+  sortOrder: Int
+  status: String
+  severity: String
+  note: String
+  evidenceUrl: String
+  dueDate: String
+  assignee: String
+}
+
+type AuditRunSection @aws_cognito_user_pools {
+  id: ID!
+  title: String!
+  description: String
+  sortOrder: Int
+  items: [AuditRunItem!]!
+}
+
+type Audit @aws_cognito_user_pools {
+  id: ID!
+  title: String!
+  target: String!
+  clientName: String
+  clientEmail: String
+  summary: String
+  auditor: String
+  auditedAt: String
+  status: String!
+  templateId: String
+  templateName: String
+  templateVersion: Int
+  sections: [AuditRunSection!]!
+  createdAt: String
+  updatedAt: String
+  createdBy: String
+}
+
+input AuditItemInput {
+  id: ID
+  label: String!
+  description: String
+  referenceUrl: String
+  remediation: String
+  sortOrder: Int
+}
+
+input AuditSectionInput {
+  id: ID
+  title: String!
+  description: String
+  sortOrder: Int
+  items: [AuditItemInput!]!
+}
+
+input CreateAuditTemplateInput {
+  name: String!
+  description: String
+  category: String
+  sections: [AuditSectionInput!]!
+}
+
+input UpdateAuditTemplateInput {
+  name: String
+  description: String
+  category: String
+  sections: [AuditSectionInput!]
+}
+
+input AuditRunItemInput {
+  id: ID
+  label: String!
+  description: String
+  referenceUrl: String
+  remediation: String
+  sortOrder: Int
+  status: String
+  severity: String
+  note: String
+  evidenceUrl: String
+  dueDate: String
+  assignee: String
+}
+
+input AuditRunSectionInput {
+  id: ID
+  title: String!
+  description: String
+  sortOrder: Int
+  items: [AuditRunItemInput!]!
+}
+
+input CreateAuditInput {
+  title: String!
+  target: String!
+  clientName: String
+  clientEmail: String
+  summary: String
+  auditor: String
+  auditedAt: String
+  status: AuditStatus
+  templateId: String
+  templateName: String
+  templateVersion: Int
+  sections: [AuditRunSectionInput!]
+}
+
+input UpdateAuditInput {
+  title: String
+  target: String
+  clientName: String
+  clientEmail: String
+  summary: String
+  auditor: String
+  auditedAt: String
+  status: AuditStatus
+  sections: [AuditRunSectionInput!]
+}
+
+input UpdateAuditRunItemInput {
+  label: String
+  description: String
+  referenceUrl: String
+  remediation: String
+  status: String
+  severity: String
+  note: String
+  evidenceUrl: String
+  dueDate: String
+  assignee: String
 }
 
 input LineItemInput {
@@ -236,6 +413,18 @@ type Mutation {
   queuePushServiceToNotion(serviceId: ID!): NotionSyncJob! @aws_cognito_user_pools
   queuePushQuoteToNotion(quoteId: ID!): NotionSyncJob! @aws_cognito_user_pools
   queueSyncQuotesToNotion: NotionSyncJob! @aws_cognito_user_pools
+
+  createAuditTemplate(input: CreateAuditTemplateInput!): AuditTemplate! @aws_cognito_user_pools
+  updateAuditTemplate(id: ID!, input: UpdateAuditTemplateInput!): AuditTemplate @aws_cognito_user_pools
+  deleteAuditTemplate(id: ID!): Boolean @aws_cognito_user_pools
+  seedDefaultAuditTemplates: [AuditTemplate!]! @aws_cognito_user_pools
+
+  createAudit(input: CreateAuditInput!): Audit! @aws_cognito_user_pools
+  createAuditFromTemplate(templateId: ID!, input: CreateAuditInput!): Audit! @aws_cognito_user_pools
+  updateAudit(id: ID!, input: UpdateAuditInput!): Audit @aws_cognito_user_pools
+  updateAuditItem(auditId: ID!, sectionId: ID!, itemId: ID!, input: UpdateAuditRunItemInput!): Audit @aws_cognito_user_pools
+  setAuditStatus(id: ID!, status: AuditStatus!): Audit @aws_cognito_user_pools
+  deleteAudit(id: ID!): Boolean @aws_cognito_user_pools
 }
 
 input CreateServiceInput {

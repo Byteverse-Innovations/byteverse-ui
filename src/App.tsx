@@ -16,6 +16,9 @@ import AdminClients from './components/admin/AdminClients'
 import AdminQuotes from './components/admin/AdminQuotes'
 import AdminContacts from './components/admin/AdminContacts'
 import AdminServices from './components/admin/AdminServices'
+import AdminAudits from './components/admin/AdminAudits'
+import AdminAuditTemplateEditor from './components/admin/AdminAuditTemplateEditor'
+import AdminAuditRun from './components/admin/AdminAuditRun'
 import AdminNotionCallback from './components/admin/AdminNotionCallback'
 import QuotePortal from './components/quote/QuotePortal'
 
@@ -48,6 +51,9 @@ const App = () => {
               <Route path="quotes" element={<AdminQuotes />} />
               <Route path="contacts" element={<AdminContacts />} />
               <Route path="services" element={<AdminServices />} />
+              <Route path="audits" element={<AdminAudits />} />
+              <Route path="audits/templates/:id" element={<AdminAuditTemplateEditor />} />
+              <Route path="audits/:id" element={<AdminAuditRun />} />
               <Route path="notion/callback" element={<AdminNotionCallback />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

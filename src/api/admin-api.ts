@@ -539,3 +539,347 @@ export async function queueSyncQuotesToNotion(): Promise<NotionSyncJob> {
   if (!data.queueSyncQuotesToNotion) throw new Error('Failed to queue Notion quotes sync job')
   return data.queueSyncQuotesToNotion
 }
+
+// ---------------- Audit checklists ----------------
+
+export type AuditItem = {
+  id: string
+  label: string
+  description?: string | null
+  referenceUrl?: string | null
+  remediation?: string | null
+  sortOrder?: number | null
+}
+
+export type AuditSection = {
+  id: string
+  title: string
+  description?: string | null
+  sortOrder?: number | null
+  items: AuditItem[]
+}
+
+export type AuditTemplate = {
+  id: string
+  name: string
+  description?: string | null
+  category?: string | null
+  version?: number | null
+  sections: AuditSection[]
+  createdAt?: string | null
+  updatedAt?: string | null
+  createdBy?: string | null
+}
+
+export type AuditRunItem = {
+  id: string
+  label: string
+  description?: string | null
+  referenceUrl?: string | null
+  remediation?: string | null
+  sortOrder?: number | null
+  status?: string | null
+  severity?: string | null
+  note?: string | null
+  evidenceUrl?: string | null
+  dueDate?: string | null
+  assignee?: string | null
+}
+
+export type AuditRunSection = {
+  id: string
+  title: string
+  description?: string | null
+  sortOrder?: number | null
+  items: AuditRunItem[]
+}
+
+export type Audit = {
+  id: string
+  title: string
+  target: string
+  clientName?: string | null
+  clientEmail?: string | null
+  summary?: string | null
+  auditor?: string | null
+  auditedAt?: string | null
+  status: string
+  templateId?: string | null
+  templateName?: string | null
+  templateVersion?: number | null
+  sections: AuditRunSection[]
+  createdAt?: string | null
+  updatedAt?: string | null
+  createdBy?: string | null
+}
+
+export type AuditItemInput = {
+  id?: string | null
+  label: string
+  description?: string | null
+  referenceUrl?: string | null
+  remediation?: string | null
+  sortOrder?: number | null
+}
+
+export type AuditSectionInput = {
+  id?: string | null
+  title: string
+  description?: string | null
+  sortOrder?: number | null
+  items: AuditItemInput[]
+}
+
+export type CreateAuditTemplateInput = {
+  name: string
+  description?: string | null
+  category?: string | null
+  sections: AuditSectionInput[]
+}
+
+export type UpdateAuditTemplateInput = Partial<CreateAuditTemplateInput>
+
+export type AuditRunItemInput = {
+  id?: string | null
+  label: string
+  description?: string | null
+  referenceUrl?: string | null
+  remediation?: string | null
+  sortOrder?: number | null
+  status?: string | null
+  severity?: string | null
+  note?: string | null
+  evidenceUrl?: string | null
+  dueDate?: string | null
+  assignee?: string | null
+}
+
+export type AuditRunSectionInput = {
+  id?: string | null
+  title: string
+  description?: string | null
+  sortOrder?: number | null
+  items: AuditRunItemInput[]
+}
+
+export type CreateAuditInput = {
+  title: string
+  target: string
+  clientName?: string | null
+  clientEmail?: string | null
+  summary?: string | null
+  auditor?: string | null
+  auditedAt?: string | null
+  status?: string | null
+  templateId?: string | null
+  templateName?: string | null
+  templateVersion?: number | null
+  sections?: AuditRunSectionInput[]
+}
+
+export type UpdateAuditInput = Partial<CreateAuditInput>
+
+export type UpdateAuditRunItemInput = {
+  label?: string
+  description?: string | null
+  referenceUrl?: string | null
+  remediation?: string | null
+  status?: string | null
+  severity?: string | null
+  note?: string | null
+  evidenceUrl?: string | null
+  dueDate?: string | null
+  assignee?: string | null
+}
+
+const AUDIT_TEMPLATE_SELECTION = `
+  id name description category version createdAt updatedAt createdBy
+  sections {
+    id title description sortOrder
+    items { id label description referenceUrl remediation sortOrder }
+  }
+`
+
+const AUDIT_SELECTION = `
+  id title target clientName clientEmail summary auditor auditedAt status
+  templateId templateName templateVersion createdAt updatedAt createdBy
+  sections {
+    id title description sortOrder
+    items {
+      id label description referenceUrl remediation sortOrder
+      status severity note evidenceUrl dueDate assignee
+    }
+  }
+`
+
+const LIST_AUDIT_TEMPLATES = `
+  query listAuditTemplates {
+    listAuditTemplates { ${AUDIT_TEMPLATE_SELECTION} }
+  }
+`
+const GET_AUDIT_TEMPLATE = `
+  query getAuditTemplate($id: ID!) {
+    getAuditTemplate(id: $id) { ${AUDIT_TEMPLATE_SELECTION} }
+  }
+`
+const CREATE_AUDIT_TEMPLATE = `
+  mutation createAuditTemplate($input: CreateAuditTemplateInput!) {
+    createAuditTemplate(input: $input) { ${AUDIT_TEMPLATE_SELECTION} }
+  }
+`
+const UPDATE_AUDIT_TEMPLATE = `
+  mutation updateAuditTemplate($id: ID!, $input: UpdateAuditTemplateInput!) {
+    updateAuditTemplate(id: $id, input: $input) { ${AUDIT_TEMPLATE_SELECTION} }
+  }
+`
+const DELETE_AUDIT_TEMPLATE = `
+  mutation deleteAuditTemplate($id: ID!) {
+    deleteAuditTemplate(id: $id)
+  }
+`
+const SEED_DEFAULT_AUDIT_TEMPLATES = `
+  mutation seedDefaultAuditTemplates {
+    seedDefaultAuditTemplates { ${AUDIT_TEMPLATE_SELECTION} }
+  }
+`
+const LIST_AUDITS = `
+  query listAudits {
+    listAudits { ${AUDIT_SELECTION} }
+  }
+`
+const GET_AUDIT = `
+  query getAudit($id: ID!) {
+    getAudit(id: $id) { ${AUDIT_SELECTION} }
+  }
+`
+const CREATE_AUDIT = `
+  mutation createAudit($input: CreateAuditInput!) {
+    createAudit(input: $input) { ${AUDIT_SELECTION} }
+  }
+`
+const CREATE_AUDIT_FROM_TEMPLATE = `
+  mutation createAuditFromTemplate($templateId: ID!, $input: CreateAuditInput!) {
+    createAuditFromTemplate(templateId: $templateId, input: $input) { ${AUDIT_SELECTION} }
+  }
+`
+const UPDATE_AUDIT = `
+  mutation updateAudit($id: ID!, $input: UpdateAuditInput!) {
+    updateAudit(id: $id, input: $input) { ${AUDIT_SELECTION} }
+  }
+`
+const UPDATE_AUDIT_ITEM = `
+  mutation updateAuditItem($auditId: ID!, $sectionId: ID!, $itemId: ID!, $input: UpdateAuditRunItemInput!) {
+    updateAuditItem(auditId: $auditId, sectionId: $sectionId, itemId: $itemId, input: $input) { ${AUDIT_SELECTION} }
+  }
+`
+const SET_AUDIT_STATUS = `
+  mutation setAuditStatus($id: ID!, $status: AuditStatus!) {
+    setAuditStatus(id: $id, status: $status) { ${AUDIT_SELECTION} }
+  }
+`
+const DELETE_AUDIT = `
+  mutation deleteAudit($id: ID!) {
+    deleteAudit(id: $id)
+  }
+`
+
+export async function listAuditTemplates(): Promise<AuditTemplate[]> {
+  const data = await requestWithAuth<{ listAuditTemplates: AuditTemplate[] }>(LIST_AUDIT_TEMPLATES)
+  return data.listAuditTemplates ?? []
+}
+
+export async function getAuditTemplate(id: string): Promise<AuditTemplate | null> {
+  const data = await requestWithAuth<{ getAuditTemplate: AuditTemplate | null }>(GET_AUDIT_TEMPLATE, { id })
+  return data.getAuditTemplate ?? null
+}
+
+export async function createAuditTemplate(input: CreateAuditTemplateInput): Promise<AuditTemplate> {
+  const data = await requestWithAuth<{ createAuditTemplate: AuditTemplate }>(CREATE_AUDIT_TEMPLATE, { input })
+  if (!data.createAuditTemplate) throw new Error('Failed to create audit template')
+  return data.createAuditTemplate
+}
+
+export async function updateAuditTemplate(
+  id: string,
+  input: UpdateAuditTemplateInput
+): Promise<AuditTemplate> {
+  const data = await requestWithAuth<{ updateAuditTemplate: AuditTemplate | null }>(UPDATE_AUDIT_TEMPLATE, {
+    id,
+    input,
+  })
+  if (!data.updateAuditTemplate) throw new Error('Failed to update audit template')
+  return data.updateAuditTemplate
+}
+
+export async function deleteAuditTemplate(id: string): Promise<boolean> {
+  const data = await requestWithAuth<{ deleteAuditTemplate: boolean }>(DELETE_AUDIT_TEMPLATE, { id })
+  return data.deleteAuditTemplate === true
+}
+
+export async function seedDefaultAuditTemplates(): Promise<AuditTemplate[]> {
+  const data = await requestWithAuth<{ seedDefaultAuditTemplates: AuditTemplate[] }>(
+    SEED_DEFAULT_AUDIT_TEMPLATES
+  )
+  return data.seedDefaultAuditTemplates ?? []
+}
+
+export async function listAudits(): Promise<Audit[]> {
+  const data = await requestWithAuth<{ listAudits: Audit[] }>(LIST_AUDITS)
+  return data.listAudits ?? []
+}
+
+export async function getAudit(id: string): Promise<Audit | null> {
+  const data = await requestWithAuth<{ getAudit: Audit | null }>(GET_AUDIT, { id })
+  return data.getAudit ?? null
+}
+
+export async function createAudit(input: CreateAuditInput): Promise<Audit> {
+  const data = await requestWithAuth<{ createAudit: Audit }>(CREATE_AUDIT, { input })
+  if (!data.createAudit) throw new Error('Failed to create audit')
+  return data.createAudit
+}
+
+export async function createAuditFromTemplate(
+  templateId: string,
+  input: CreateAuditInput
+): Promise<Audit> {
+  const data = await requestWithAuth<{ createAuditFromTemplate: Audit }>(CREATE_AUDIT_FROM_TEMPLATE, {
+    templateId,
+    input,
+  })
+  if (!data.createAuditFromTemplate) throw new Error('Failed to create audit from template')
+  return data.createAuditFromTemplate
+}
+
+export async function updateAudit(id: string, input: UpdateAuditInput): Promise<Audit> {
+  const data = await requestWithAuth<{ updateAudit: Audit | null }>(UPDATE_AUDIT, { id, input })
+  if (!data.updateAudit) throw new Error('Failed to update audit')
+  return data.updateAudit
+}
+
+export async function updateAuditItem(
+  auditId: string,
+  sectionId: string,
+  itemId: string,
+  input: UpdateAuditRunItemInput
+): Promise<Audit> {
+  const data = await requestWithAuth<{ updateAuditItem: Audit | null }>(UPDATE_AUDIT_ITEM, {
+    auditId,
+    sectionId,
+    itemId,
+    input,
+  })
+  if (!data.updateAuditItem) throw new Error('Failed to update audit item')
+  return data.updateAuditItem
+}
+
+export async function setAuditStatus(id: string, status: string): Promise<Audit> {
+  const data = await requestWithAuth<{ setAuditStatus: Audit | null }>(SET_AUDIT_STATUS, { id, status })
+  if (!data.setAuditStatus) throw new Error('Failed to set audit status')
+  return data.setAuditStatus
+}
+
+export async function deleteAudit(id: string): Promise<boolean> {
+  const data = await requestWithAuth<{ deleteAudit: boolean }>(DELETE_AUDIT, { id })
+  return data.deleteAudit === true
+}

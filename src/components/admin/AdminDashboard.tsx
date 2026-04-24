@@ -8,6 +8,7 @@ import {
   FileText,
   Inbox,
   Briefcase,
+  ClipboardCheck,
   ArrowUpRight,
 } from 'lucide-react'
 import './AdminDashboard.scss'
@@ -49,6 +50,12 @@ const TILES: DashTile[] = [
     title: 'Services',
     description: 'Manage what you show on the marketing site.',
     icon: Briefcase,
+  },
+  {
+    to: '/admin/audits',
+    title: 'Audit checklists',
+    description: 'Build reusable audit templates and run audits against sites, infra, and systems.',
+    icon: ClipboardCheck,
   },
 ]
 

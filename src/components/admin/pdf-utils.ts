@@ -1,8 +1,9 @@
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
-import type { Quote, Invoice } from '../../api/admin-api'
+import type { Quote, Invoice, Audit } from '../../api/admin-api'
 import { QUOTE_PRINT_LOGO_PUBLIC_PATH } from '../../lib/quote-print-branding'
 import { buildInvoicePrintHtml, buildQuotePrintHtml } from '../../lib/quote-print-html'
+import { buildAuditPrintHtml } from '../../lib/audit-print-html'
 
 /** srcdoc iframes need absolute logo URLs so the asset still loads cross-document. */
 function preparePrintHtmlForSrcdoc(html: string): string {
@@ -465,4 +466,18 @@ export async function downloadQuotePdf(quote: Quote, filename?: string) {
 export async function downloadInvoicePdf(invoice: Invoice, filename?: string) {
   const html = buildInvoicePrintHtml(invoice)
   await renderPrintHtmlToPdfFile(html, filename ?? `invoice-${invoice.id}.pdf`)
+}
+
+function auditFilenameSlug(audit: Audit): string {
+  const parts = [audit.target, audit.title]
+    .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
+    .map((s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''))
+    .filter((s) => s.length > 0)
+  if (parts.length === 0) return `audit-${audit.id}`
+  return `audit-${parts.join('-')}`
+}
+
+export async function downloadAuditPdf(audit: Audit, filename?: string) {
+  const html = buildAuditPrintHtml(audit)
+  await renderPrintHtmlToPdfFile(html, filename ?? `${auditFilenameSlug(audit)}.pdf`)
 }

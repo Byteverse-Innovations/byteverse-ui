@@ -19,6 +19,7 @@ export default function AdminLayout() {
     { to: '/admin/quotes', label: 'Quotes & Invoices' },
     { to: '/admin/contacts', label: 'Contact submissions' },
     { to: '/admin/services', label: 'Services' },
+    { to: '/admin/audits', label: 'Audit checklists' },
   ]
 
   return (
